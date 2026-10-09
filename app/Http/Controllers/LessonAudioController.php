@@ -6,7 +6,7 @@ use App\Models\Lesson;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * S1 audio delivery: /media/lessons/{lesson}/audio.
@@ -14,12 +14,18 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  * The server-side policy runs before any byte is sent. Bytes stream from
  * the private disk through Laravel's file response (Symfony
  * BinaryFileResponse, which owns Range/206/416 and HEAD); the file is
- * never loaded into PHP memory. Nginx X-Accel-Redirect delivery belongs
- * to a later slice (recorded in the active exec plan).
+ * never loaded into PHP memory.
+ *
+ * S9a production (scope section 16): when APP_ENV=production, policy and
+ * the 416 pre-check run first, then nginx serves the bytes via
+ * X-Accel-Redirect from the internal /_private/ location backed by
+ * storage/app/private. External requests to /_private/ return 404
+ * (nginx `internal`). Dev/testing keep the PHP file response so the
+ * S1 suite keeps its meaning.
  */
 class LessonAudioController extends Controller
 {
-    public function show(Request $request, Lesson $lesson): BinaryFileResponse
+    public function show(Request $request, Lesson $lesson): Response
     {
         if ($lesson->status !== 'published' || $lesson->topic->status !== 'published') {
             abort(404);
@@ -38,6 +44,19 @@ class LessonAudioController extends Controller
         $range = (string) $request->header('Range', '');
         if ($range !== '' && ! $this->isRangeSatisfiable($range, $size)) {
             abort(response('', 416, ['Content-Range' => "bytes */{$size}"]));
+        }
+
+        // S9a: production hands bytes to nginx after the policy check.
+        // Nginx owns Range/206/416/HEAD for the redirected file; the
+        // PHP pre-check above keeps the 416 contract identical in both
+        // modes. Cache-Control stays private, no-store in both modes.
+        if (app()->environment('production')) {
+            return response('', 200, [
+                'X-Accel-Redirect' => '/_private/'.$lesson->audio_path,
+                'Content-Type' => 'audio/mpeg',
+                'Accept-Ranges' => 'bytes',
+                'Cache-Control' => 'private, no-store',
+            ]);
         }
 
         // BinaryFileResponse defaults to `public`; that directive would let

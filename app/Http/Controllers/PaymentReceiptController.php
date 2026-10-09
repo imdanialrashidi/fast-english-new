@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * S5 receipt intake + private delivery (scope §10.3, §16).
@@ -152,7 +152,7 @@ class PaymentReceiptController extends Controller
             ->with('status', 'رسید ثبت شد و در صف بررسی قرار گرفت.');
     }
 
-    public function show(Request $request, PaymentRequest $paymentRequest): BinaryFileResponse
+    public function show(Request $request, PaymentRequest $paymentRequest): Response
     {
         $user = $request->user();
         if ($user === null || $user->disabled_at !== null) {
@@ -173,6 +173,19 @@ class PaymentReceiptController extends Controller
         $absolute = Storage::disk('local')->path($path);
         if ($path === '' || ! is_file($absolute)) {
             abort(404);
+        }
+
+        // S9a production (scope §16): policy first, then nginx serves the
+        // bytes via X-Accel-Redirect from the internal location. Dev and
+        // tests keep the PHP file response; covers stay on the public disk
+        // and are never served here.
+        if (app()->environment('production')) {
+            return response('', 200, [
+                'X-Accel-Redirect' => '/_private/'.$path,
+                'Content-Type' => $this->contentType($absolute),
+                'Accept-Ranges' => 'bytes',
+                'Cache-Control' => 'private, no-store',
+            ]);
         }
 
         $response = response()->file($absolute, [

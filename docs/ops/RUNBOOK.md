@@ -1,4 +1,4 @@
-# Fast English — Operations Runbook (S8)
+# Fast English — Operations Runbook (S9a)
 
 Scope: release, rollback, backup, restore, receipt retention, incidents.
 Each step is marked **[tested]** (proven in S8) or **[untested]** (needs a
@@ -20,6 +20,10 @@ Untracked env files hold the real values; `.env.example` lists names only.
    **[tested]** (223 passed in S8)
 4. `php artisan migrate --force` only AFTER a fresh backup (§3).
    **[tested]** (dev-lane migrations, incl. the fe_dev catch-up)
+   S9a: this is the ONE explicit migrate command per release. Migrations
+   NEVER run on container start (Docker ENTRYPOINT runs storage:link +
+   config:cache only; supervisord starts nginx/php-fpm/schedule/queue).
+   **[tested]** (production image entrypoint inspected; no migrate).
 5. Set production env: `APP_ENV=production`, `APP_DEBUG=false`,
    `SESSION_SECURE_COOKIE=true`, `SALES_ENABLED` stays `false` until the
    commercial inputs (§25) are in, `STAFF_2FA_ENFORCE` defaults ON in

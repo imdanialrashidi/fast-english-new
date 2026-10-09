@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DisablePasswordResetWhenSmtpMissing;
 use App\Http\Middleware\EnsureStaff;
 use App\Http\Middleware\PrivateNoStore;
 use App\Http\Middleware\RejectDisabledUsers;
@@ -16,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // S9a: trust Coolify's TLS-terminating proxy so Laravel sees HTTPS
+        // (SESSION_SECURE_COOKIE + APP_URL require it; scope section 19.1).
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'reject.disabled' => RejectDisabledUsers::class,
             // S8: staff-only routes (2FA setup/challenge, panel extras).
@@ -25,6 +29,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', PrivateNoStore::class);
         // S3 pre-slice scope §16: five upload requests per minute per user.
         $middleware->appendToGroup('web', ThrottleUploads::class);
+        // S9a: production without SMTP disables reset (neutral, no send/log).
+        $middleware->appendToGroup('web', DisablePasswordResetWhenSmtpMissing::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

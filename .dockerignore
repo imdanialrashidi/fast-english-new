@@ -1,2 +1,29 @@
-**
-!Dockerfile.pi
+# S9a production image: keep build context small and secret-free.
+# Never include real values; Coolify provides runtime env separately.
+.env*
+.git
+.gitignore
+node_modules
+vendor
+tests
+test-results
+docs/exec-plans
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+public/build
+storage/app/private/*
+!storage/app/private/.gitignore
+storage/app/public/*
+!storage/app/public/.gitignore
+storage/logs
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+storage/framework/testing
+storage/pail
+.pi/sessions
+.pi/cache
+.playwright
+playwright-report
+coverage
+.artifacts
