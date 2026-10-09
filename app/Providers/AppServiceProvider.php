@@ -5,9 +5,11 @@ namespace App\Providers;
 use App\Models\Lesson;
 use App\Models\PaymentRequest;
 use App\Models\PlacementAttempt;
+use App\Models\VocabularyWord;
 use App\Policies\LessonPolicy;
 use App\Policies\PaymentRequestPolicy;
 use App\Policies\PlacementAttemptPolicy;
+use App\Policies\VocabularyWordPolicy;
 use App\Support\BrowserDatabaseGuard;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Lesson::class, LessonPolicy::class);
         Gate::policy(PaymentRequest::class, PaymentRequestPolicy::class);
         Gate::policy(PlacementAttempt::class, PlacementAttemptPolicy::class);
+        Gate::policy(VocabularyWord::class, VocabularyWordPolicy::class);
 
         // S2: destructive console commands must never wipe the browser-lane
         // database. Seeding uses plain `migrate --seeder=...`, which is

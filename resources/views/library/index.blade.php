@@ -1,10 +1,11 @@
 @extends('layouts.learner')
 
-@section('title', 'مطالب')
+@section('title', 'کشف مطالب')
 
 @section('content')
 <div class="fe-measure fe-library">
-    <h1>مطالب</h1>
+    <h1>کشف مطالب</h1>
+    <p class="fe-muted">یک مطلب کوتاه در سطح خودت پیدا کن — هر موضوع یک‌بار، با سطح‌های موجودش.</p>
 
     <form class="fe-filters" method="get" action="{{ route('app.home') }}" role="search" aria-label="جست‌وجو و فیلتر مطالب">
         <div class="fe-field">
@@ -38,6 +39,7 @@
     </form>
 
     <p class="fe-muted" role="status">{{ $topics->total() }} مطلب</p>
+    <p><a class="fe-btn" href="{{ route('app.saved') }}" wire:navigate>ذخیره‌شده‌ها</a></p>
 
     @if ($topics->isEmpty())
         <div class="fe-empty">

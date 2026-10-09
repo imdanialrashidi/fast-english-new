@@ -23,7 +23,7 @@
     <p dir="auto" class="fe-muted">{{ $topic->summary_public }}</p>
     <p class="fe-muted">سطح {{ $lesson->level }} · حدود {{ $lesson->estimated_minutes }} دقیقه مطالعه</p>
 
-    {{-- S4 lesson binding for the persistent player in the learner layout.
+    {{-- Lesson binding for the persistent player in the learner layout.
          The audio URL stays in the HTML so the S1 no-mixing proof (body +
          audio URL present only for the active level) keeps holding; the
          layout player reads these attributes on load and on
@@ -64,15 +64,32 @@
     <p id="bookmark-status" class="fe-muted" role="status"></p>
     @endauth
 
-    <article class="fe-english-body" lang="en" dir="ltr">
-        @foreach (preg_split("/\\R{2,}/", $lesson->body_en) as $paragraph)
-            <p>{{ $paragraph }}</p>
-        @endforeach
-    </article>
+    @if ($cuesUsable)
+        <ol class="fe-sentences" lang="en" dir="ltr" aria-label="متن درس با همگام‌سازی صوت">
+            @foreach ($sentences as $index => $sentence)
+                <li>
+                    <button class="fe-sentence" type="button"
+                            data-index="{{ $index }}"
+                            data-start="{{ $cues[$index]['start_seconds'] }}"
+                            data-end="{{ $cues[$index]['end_seconds'] }}"
+                            aria-current="false"
+                            aria-label="پخش جمله {{ $index + 1 }} از {{ count($sentences) }}">{{ $sentence }}</button>
+                </li>
+            @endforeach
+        </ol>
+    @else
+        <article class="fe-english-body" lang="en" dir="ltr">
+            @foreach (preg_split("/\\R{2,}/", $lesson->body_en) as $paragraph)
+                <p>{{ $paragraph }}</p>
+            @endforeach
+        </article>
+        <p class="fe-muted" role="note">همگام‌سازی جمله‌به‌جمله برای این نسخه هنوز آماده نیست؛ پخش عادی فعال است و درس بدون مشکل کامل می‌شود.</p>
+    @endif
 
-    {{-- S3 glossary (READ-02): the active lesson's words only. Every value
-         is escaped; premium lessons never reach this view for ineligible
-         readers (policy 403 happens in the controller first). --}}
+    {{-- Active lesson's glossary only. Every value is escaped; premium
+         lessons never reach this view for ineligible readers (policy 403
+         happens in the controller first). Each word can be saved into the
+         personal vocabulary notebook. --}}
     @if (! empty($lesson->glossary))
         <section aria-label="واژه‌های کلیدی">
             <h2>واژه‌های کلیدی</h2>
@@ -84,9 +101,26 @@
                         @if (! empty($entry['example_en']))
                             <dd class="fe-muted" lang="en" dir="ltr">{{ $entry['example_en'] }}</dd>
                         @endif
+                        @auth
+                            <dd>
+                                <button class="fe-btn fe-vocab-save" type="button"
+                                        data-word="{{ $entry['word'] }}"
+                                        data-meaning="{{ $entry['meaning_fa'] }}"
+                                        data-example="{{ $entry['example_en'] ?? '' }}"
+                                        data-lesson-id="{{ $lesson->id }}">ذخیره واژه</button>
+                            </dd>
+                        @endauth
                     </div>
                 @endforeach
             </dl>
+            @auth
+                <p id="vocab-status" class="fe-muted" role="status"></p>
+            @endauth
+        </section>
+    @else
+        <section aria-label="واژه‌های کلیدی">
+            <h2>واژه‌های کلیدی</h2>
+            <p class="fe-muted" role="note">برای این درس واژه‌ای ثبت نشده است.</p>
         </section>
     @endif
 </div>

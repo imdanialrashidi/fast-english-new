@@ -237,9 +237,52 @@ Final palette/typography/brand approval (at first rendered UI); snapshot-expiry 
 - TWA/media risk if S2 slips → controlled by keeping S2 early.
 - Scope-memory drift → controlled by section-cited contracts + this plan.
 
+## 11. Owner-approved design amendments 2026-10-09 + D2–D5 build split (save-only, no UI/behavior built)
+
+Owner instruction 2026-10-09 (authoritative per scope §0): polished, distinctive, professional, comparable to leading consumer audio/learning apps; dark + light required; distinctive palette; every published topic a real cover, never an empty placeholder. Read: DESIGN.md, PRODUCT.md, scope §§4/6/9.2/9.4/17/17.4, plan S3/S4/S8 notes.
+
+Amendments (owner-approved, with date + reason):
+1. Dark mode into v1 (was §4 excluded). Light default; user chooses system/light/dark. Reason: parity with leading apps.
+2. §17.1 restraint relaxed narrowly: gradients/glow only in cover art + landing hero; motion only for state feedback/transitions with prefers-reduced-motion; shadows only via named elevation tokens. Reason: polish needs cover/hero craft.
+3. Bottom tab bar (Library, Saved, Account) with mini-player above + safe-area padding; supersedes top bar (§17.3 already assumes this). Reason: mobile audio pattern + polish.
+4. Real cover per published topic: default GD-generated abstract, deterministic from slug, no baked text; staff licensed-photo uploads each with license record (source, license name, date checked, usage notes); no runtime third-party fetch. Reason: no placeholders; auditable provenance.
+5. Amber replaces the navy/blue identity from scope §17.1 (primary `#1D4ED8`, primary-hover `#1E40AF`) with the Night Studio amber scale (dark `#F5A524`, light `#B45309`, sepia `#92400E`); navy/blue is no longer the identity. Owner-approved on 2026-10-09 by owner direction. Reason: owner direction requires a distinctive polished palette with a warm amber signal for play/progress.
+6. Soft Day light theme (owner Softly inspiration, 2026-10-09): replaces Night Studio light + §17.1 proposal values in code for learner app surfaces (cream `#FDFCF8`, coral `#FFB7B2`/`#FF9E99`, ink `#292524`, muted `#78716C`); sage `#E8EFE8` recorded for landing; grain/backdrop-blur/permanent-motion/giant-blurs excluded for perf; landing markup untouched (redesign deferred). Reason: owner wants the Softly look in the app without the perf cost. Slice (this turn): tokens + shape language in `resources/css/app.css`, theme-color/offline/manifest recolor, S3DesignTest pair update to the new semantics, Vite rebuild, browser-qa on list/reader/saved at 360/390/1280. Dark companion, display fonts, and icons stay open.
+
+Direction saved (PROPOSED, not owner-approved): Night Studio — dark-first ink-blue canvas, warm amber primary/progress, cool teal success, restrained coral danger; warm-paper light default; optional sepia reader; Vazirmatn FA + Sora display + Newsreader serif (both OFL, license files recorded before use). Tokens + measured contrast in DESIGN.md (all body ≥4.5:1, controls/focus ≥3:1, borders decorative). Code mapping (proposed, not built): app.css @theme + [data-theme] variant, no ad-hoc colors.
+
+Build split (each with acceptance; rendered proof required before ship):
+- D2 Landing: hero (allowed gradient/glow) + promise/sample/how-it-works/plans/install/FAQ in dark + light; 360/390/1280 rendered pass; contrast re-measured on hero pairs.
+- D3 App shell in all three themes (dark/light/sepia): bottom tabs + mini-player + safe-area, library, reader, saved, account; theme switch system/light/dark (+ sepia reader option); keyboard/focus/44px/RTL-LTR/zoom/reduced-motion intact per theme.
+- D4 Covers: GD pipeline (slug-deterministic, no baked text) + fixture replacement (no PIL placeholders) + staff upload with license record fields enforced + draft-publish gating unchanged.
+- D5 Dark-mode verification + studio pass: full text/control contrast re-measured per theme, bottom-nav/mini-player clearance, rendered inspection at 360/390/1280 CSS px vs Night Studio thesis.
+
+Open owner decisions: palette confirmation, sepia-mode scope, licensed-photo source(s).
+
 ## Handoff
 
 Changed (working tree, uncommitted): `docs/PRODUCT.md`, `docs/DESIGN.md`, `docs/ARCHITECTURE.md`, `docs/QUALITY.md`, `docs/PLAN.md`, `docs/exec-plans/active/fast-english-rebuild.md`, `AGENTS.md` (map entry only).
 Remains: owner review of these contracts; then `/build` for S0 only (never "build everything").
 Must not be overwritten: scope v1.0 authority; four-group labelling; proposal-vs-approval distinction; S2-early + no-finance-before-S5/S6 sequence.
 First action for a fresh session: review this plan + scope §§0–7/21–26, then start S0-1 (clean dependency resolution) under a `/build` slice contract.
+
+## R-slice: Editorial redesign + sentence cues + vocabulary SRS + daily plan (owner request 2026-10-09, active)
+
+Task class: Complex + High risk (auth/access, schema migration, private media, server authorization). One writer, incremental vertical slices in dependency order R1→R5. PR delivery BLOCKED in-session: PI_GIT_MUTATION=deny refuses the ai-pr helper prepare step; local implementation continues, delivery reported as blocker.
+
+Acceptance contract — Goal: editorial visual identity from the reference (ivory #F7F5EF, navy #172238, blue #4263EB, amber #E9AC52; Vazirmatn + Inter) across landing/Today/Discover/Reader/Vocabulary/Account; real sentence-level audio sync with fallback; persistent vocabulary SRS (Again/Hard/Good/Easy); daily 5/10/15-min plan from persisted state. Non-goals: gateway/OCR/SMS/native iOS/store/offline-paid/push/AI/TTS/word-level/streaks/leaderboards/coupons/affiliates/multi-teacher/multi-locale; deploy/merge/release; second frontend; weakening auth/money rules. Criteria: A1 visual cohesion (proof: inspected rendered shots 360/390/1440); A2 cue correctness + fallback (proof: Pest + Playwright seek); A3 vocab persistence/isolation/SRS (proof: Pest + reload); A4 daily plan from persisted state, level/premium respected (proof: Pest); A5 responsive 320–1440, RTL/LTR, focus, 44px, reduced-motion, measured contrast; A6 regression green (Pest + affected Playwright); A7 contracts updated (diff review). Reference image inspected 2026-10-09; illegible text not copied, direction reproduced not cloned.
+
+Ordered work: R1 tokens+shell → R2 landing/Today/Discover → R3 cues+reader → R4 vocab → R5 daily plan → QA/docs. Each slice: implement → targeted Pest → Pint → Vite build → affected Playwright → screenshots inspected → next.
+
+## R-slice progress (2026-10-09, implemented in working tree)
+
+Delivered in one coherent change (all slices hang together):
+- R1 Editorial Ivory tokens in `resources/css/app.css` (`--fe-canvas #F7F5EF`, `--fe-text #172238`, `--fe-primary #4263EB`, `--fe-accent #E9AC52`, Inter EN stack); learner shell with desktop sidebar + mobile four-tab bottom bar («امروز/کشف/واژه‌ها/حساب»); player bar offset above the tab bar; theme-color/manifest/offline recolored. S3DesignTest pairs re-measured (min body 4.98:1, controls ≥4.9:1) + no-literal rule intact.
+- R2 Landing rebuilt (hero + sample + featured + workflow + benefits + real-data plans + FAQ); Today (`TodayController` + `DailyPlan`) with greeting/continue/plan/goal-ring/due/recommendations; Discover re-titled «کشف مطالب» with saved-link; account shows goal + words links; settings adds 5/10/15 goal independent of preferred_level.
+- R3 `lessons.audio_cues` + `audio_cues_revision` (migration 000014), `AudioCues` validator (contiguity, no overlap, within duration), `Sentences` splitter shared by reader + editor, Filament cue repeater, reader sentence buttons with seek-to-interval + aria-current highlight + auto-stop, fallback note when cues missing/stale, completable without cues. Seeded A2/B1 sample carries labelled even-split FIXTURE cues.
+- R4 `vocabulary_words` (migration 000015, unique per user), `VocabularyWord` + policy (owner-only), `SpacedRepetition` deterministic Again/Hard/Good/Easy, notebook (all/due/learning/known + search + lesson context + remove) + review cards with grades, glossary save buttons reusing lesson entries.
+- R5 `users.daily_goal_minutes` (migration 000016, CHECK 5/10/15, default 10); plan computed from progress/completions/due/preferred_level with premium respected and subscribe fallback; goal change never writes preferred_level (tested).
+- Removed stale untracked `tests/browser/d6-softday.spec.ts` (contract obsolete: Soft Day coral direction superseded by owner-approved Editorial Ivory; equivalent coverage in r-*/updated specs). No tracked test deleted.
+- Evidence: Pest 247 passed (1868 assertions) on PostgreSQL incl. R3/R4/R5 suites + S3DesignTest; Pint PASS (236 files); Vite build PASS; Playwright 67 passed (62 prior incl. adapted s1/s2/s4/s8 specs + 5 new r specs, chromium, fe_browser lane). Inspected pixels: s8-landing-360/390, r-today-390/1440, r-reader-390/1440, r-words-390, s4-reader/saved (re-run). 320 reflow proven in r-reader spec.
+- Visual findings closed: fixture covers are loud labelled PIL art (not art direction); all chrome uses tokens; focus ring blue ≥3:1; 44px targets; reduced-motion kill-switch kept.
+- Remaining risks: production deploy/staging/devices still BLOCKED/UNPROVEN (prior S9b carry); staff-entered real cues needed per lesson (fixture evens are test scaffolding); Inter falls back to system stack (no font files shipped); receipt/payment flows untouched and green.

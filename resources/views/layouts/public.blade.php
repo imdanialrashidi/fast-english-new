@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#1D4ED8">
+    <meta name="theme-color" content="#F7F5EF">
     <meta name="description" content="@yield('meta_description', 'Fast English — خواندن و شنیدن متن‌های انگلیسی کوتاه در سطح مناسب')">
     @hasSection('noindex')
         <meta name="robots" content="noindex, nofollow">
@@ -22,7 +22,7 @@
 <a class="fe-skip" href="#fe-content">پرش به محتوا</a>
 <header class="fe-topnav">
     <nav aria-label="ناوبری اصلی">
-        <a class="fe-nav-link" href="{{ route('landing') }}">معرفی</a>
+        <a class="fe-nav-link" href="{{ route('landing') }}" lang="en" dir="ltr" style="font-weight:700">Fast English</a>
         <a class="fe-nav-link" href="{{ route('app.home') }}">مطالب</a>
         <a class="fe-nav-link" href="{{ route('download') }}">دانلود</a>
         <a class="fe-nav-link" href="{{ route('trust.faq') }}">پرسش‌ها</a>

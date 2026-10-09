@@ -41,11 +41,21 @@ class AccountSettingsController extends Controller
 
         $data = $request->validate([
             'preferred_level' => ['nullable', 'in:A1,A2,B1,B2,C1,C2'],
+            // R5: the daily goal is an independent explicit choice. It
+            // never writes preferred_level and vice versa.
+            'daily_goal_minutes' => ['nullable', 'in:5,10,15'],
         ]);
 
-        $user->forceFill([
-            'preferred_level' => $data['preferred_level'] ?? null,
-        ])->save();
+        $updates = [];
+        if (array_key_exists('preferred_level', $data)) {
+            $updates['preferred_level'] = $data['preferred_level'] ?? null;
+        }
+        if (array_key_exists('daily_goal_minutes', $data)) {
+            $updates['daily_goal_minutes'] = $data['daily_goal_minutes'] !== null
+                ? (int) $data['daily_goal_minutes']
+                : 10;
+        }
+        $user->forceFill($updates)->save();
 
         return redirect()
             ->route('account.settings')

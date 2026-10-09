@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-{{-- S4 learner layout: Persian RTL chrome with a persistent lesson player.
-     One HTMLAudioElement lives here under @persist('fe-player') so audio
-     survives Livewire in-app navigation between library, reader, saved,
-     and account pages. Logout and admin are full navigations that stop
-     and clear the audio (see reader-player.js). S1 controls, speeds,
-     ±10s skip, and the no-autoplay rule are unchanged. --}}
+{{-- Editorial learner layout: Persian RTL chrome with a persistent lesson
+     player. One HTMLAudioElement lives here under @persist('fe-player') so
+     audio survives Livewire in-app navigation. Desktop (≥1024px) shows a
+     restrained sidebar; mobile shows a four-destination bottom tab bar
+     (امروز / کشف / واژه‌ها / حساب) with the player bar riding above it.
+     Logout and admin are full navigations that stop and clear the audio
+     (see reader-player.js). --}}
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#1D4ED8">
+    <meta name="theme-color" content="#F7F5EF">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/icons/apple-touch-180.png">
@@ -22,16 +23,42 @@
 </head>
 <body class="fe-learner">
 <a class="fe-skip" href="#fe-content">پرش به محتوای درس</a>
-<header class="fe-topnav">
+@php
+    $isToday = request()->routeIs('today.*');
+    $isDiscover = request()->routeIs('app.home') || request()->routeIs('reader.*') || request()->routeIs('app.saved');
+    $isWords = request()->routeIs('words.*');
+    $isAccount = request()->routeIs('app.account') || request()->routeIs('account*') || request()->routeIs('subscribe.*') || request()->routeIs('payments.*') || request()->routeIs('placement.*');
+@endphp
+<div class="fe-shell">
+    <aside class="fe-sidebar" aria-label="ناوبری اصلی">
+        <p class="fe-sidebar-brand" lang="en" dir="ltr">Fast English</p>
+        <a href="{{ route('today.index') }}" wire:navigate @if($isToday) aria-current="page" @endif>امروز</a>
+        <a href="{{ route('app.home') }}" wire:navigate @if($isDiscover) aria-current="page" @endif>کشف مطالب</a>
+        <a href="{{ route('words.index') }}" wire:navigate @if($isWords) aria-current="page" @endif>واژه‌ها</a>
+        <a href="{{ route('app.account') }}" wire:navigate @if($isAccount) aria-current="page" @endif>حساب</a>
+    </aside>
+    <div>
+        <header class="fe-topnav">
+            <nav aria-label="ناوبری اصلی">
+                <a class="fe-nav-link" href="{{ route('today.index') }}" wire:navigate @if($isToday) aria-current="page" @endif>امروز</a>
+                <a class="fe-nav-link" href="{{ route('app.home') }}" wire:navigate @if($isDiscover) aria-current="page" @endif>کشف</a>
+                <a class="fe-nav-link" href="{{ route('words.index') }}" wire:navigate @if($isWords) aria-current="page" @endif>واژه‌ها</a>
+                <a class="fe-nav-link" href="{{ route('app.account') }}" wire:navigate @if($isAccount) aria-current="page" @endif>حساب</a>
+            </nav>
+        </header>
+        <main id="fe-content" class="fe-main-pad">
+            @yield('content')
+        </main>
+    </div>
+</div>
+<div class="fe-bottomnav">
     <nav aria-label="ناوبری اصلی">
-        <a class="fe-nav-link" href="{{ route('app.home') }}" wire:navigate>مطالب</a>
-        <a class="fe-nav-link" href="{{ route('app.saved') }}" wire:navigate>ذخیره‌شده‌ها</a>
-        <a class="fe-nav-link" href="{{ route('app.account') }}" wire:navigate>حساب</a>
+        <a href="{{ route('today.index') }}" wire:navigate @if($isToday) aria-current="page" @endif>امروز</a>
+        <a href="{{ route('app.home') }}" wire:navigate @if($isDiscover) aria-current="page" @endif>کشف</a>
+        <a href="{{ route('words.index') }}" wire:navigate @if($isWords) aria-current="page" @endif>واژه‌ها</a>
+        <a href="{{ route('app.account') }}" wire:navigate @if($isAccount) aria-current="page" @endif>حساب</a>
     </nav>
-</header>
-<main id="fe-content" class="fe-main-pad">
-    @yield('content')
-</main>
+</div>
 
 {{-- Persistent player: the single audio owner. The @persist directive keeps
      this element (and its playback) across Livewire navigations. --}}

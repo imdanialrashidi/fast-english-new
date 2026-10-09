@@ -42,6 +42,9 @@
     pendingSave: null,
     suppressEndedOnce: false,
     appliedInitialFor: null,
+    // R3 sentence sync: rebuilt from the DOM on every navigation.
+    sentences: [],
+    stopAt: null,
   });
 
   const STEP = 10;
@@ -285,7 +288,162 @@
     });
   }
 
+  // --- R3 sentence-level sync + R4 vocabulary actions (rebound per page). ---
+
+  function rebuildSentences() {
+    const nodes = document.querySelectorAll('.fe-sentence');
+    state.sentences = Array.from(nodes).map((el) => ({
+      el,
+      start: Number(el.dataset.start),
+      end: Number(el.dataset.end),
+    }));
+    nodes.forEach((el) => {
+      if (el.dataset.feSentenceBound === '1') return;
+      el.dataset.feSentenceBound = '1';
+      el.addEventListener('click', () => {
+        const start = Number(el.dataset.start);
+        const end = Number(el.dataset.end);
+        if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return;
+        clearError();
+        // Play exactly this sentence's interval, then stop.
+        state.suppressEndedOnce = true;
+        state.stopAt = end;
+        try { audio.currentTime = clampTime(start); } catch (_) {}
+        refreshSeek();
+        const p = audio.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => {
+            state.stopAt = null;
+            showError('پخش آغاز نشد. اتصال را بررسی کنید و دوباره تلاش کنید.');
+          });
+        }
+      });
+    });
+  }
+
+  function refreshSentence(t) {
+    if (!state.sentences || state.sentences.length === 0) return;
+    if (!Number.isFinite(t)) return;
+    let active = null;
+    for (const s of state.sentences) {
+      if (t >= s.start && t < s.end) { active = s; break; }
+    }
+    let changed = false;
+    for (const s of state.sentences) {
+      const isActive = s === active;
+      if ((s.el.getAttribute('aria-current') === 'true') !== isActive) {
+        s.el.setAttribute('aria-current', String(isActive));
+        changed = true;
+      }
+    }
+    if (changed && active !== null && !audio.paused) {
+      try {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        active.el.scrollIntoView({ block: 'nearest' });
+      } catch (_) {}
+    }
+  }
+
+  function bindVocabButtons() {
+    document.querySelectorAll('.fe-vocab-save').forEach((btn) => {
+      if (btn.dataset.feBound === '1') return;
+      btn.dataset.feBound = '1';
+      btn.addEventListener('click', async () => {
+        const status = document.getElementById('vocab-status');
+        try {
+          const res = await fetch('/app/words', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': csrf(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+              word: btn.dataset.word,
+              meaning_fa: btn.dataset.meaning || null,
+              example_en: btn.dataset.example || null,
+              lesson_id: Number(btn.dataset.lessonId) || null,
+            }),
+          });
+          const data = await res.json().catch(() => null);
+          if (res.status === 201) {
+            btn.textContent = 'ذخیره شد ✓';
+            btn.disabled = true;
+            if (status) status.textContent = '';
+          } else {
+            if (status) status.textContent = (data && data.message) || 'ذخیره واژه ناموفق بود.';
+          }
+        } catch (_) {
+          if (status) status.textContent = 'ذخیره واژه ناموفق بود. اتصال را بررسی کنید.';
+        }
+      });
+    });
+  }
+
+  function bindWordsPage() {
+    document.querySelectorAll('.fe-word-remove').forEach((btn) => {
+      if (btn.dataset.feBound === '1') return;
+      btn.dataset.feBound = '1';
+      btn.addEventListener('click', async () => {
+        const status = document.getElementById('words-status');
+        try {
+          const res = await fetch(`/app/words/${Number(btn.dataset.wordId)}`, {
+            method: 'DELETE',
+            headers: {
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': csrf(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          });
+          if (!res.ok) throw new Error(`remove failed: ${res.status}`);
+          btn.closest('.fe-vocab-row')?.remove();
+          if (status) status.textContent = '';
+        } catch (_) {
+          if (status) status.textContent = 'حذف واژه ناموفق بود. دوباره تلاش کنید.';
+        }
+      });
+    });
+
+    const showBtn = document.getElementById('flash-show');
+    if (showBtn && showBtn.dataset.feBound !== '1') {
+      showBtn.dataset.feBound = '1';
+      showBtn.addEventListener('click', () => {
+        document.getElementById('flash-meaning')?.removeAttribute('hidden');
+        document.getElementById('flash-grades')?.removeAttribute('hidden');
+        showBtn.hidden = true;
+      });
+    }
+
+    document.querySelectorAll('.fe-grade').forEach((btn) => {
+      if (btn.dataset.feBound === '1') return;
+      btn.dataset.feBound = '1';
+      btn.addEventListener('click', async () => {
+        const status = document.getElementById('grade-status');
+        try {
+          const res = await fetch(`/app/words/${Number(btn.dataset.wordId)}/grade`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': csrf(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ grade: btn.dataset.grade }),
+          });
+          if (!res.ok) throw new Error(`grade failed: ${res.status}`);
+          window.location.reload();
+        } catch (_) {
+          if (status) status.textContent = 'ثبت نتیجه ناموفق بود. دوباره تلاش کنید.';
+        }
+      });
+    });
+  }
+
   function bindPageButtons() {
+    rebuildSentences();
+    bindVocabButtons();
+    bindWordsPage();
     const bookmarkBtn = $('bookmark-toggle');
     if (bookmarkBtn && bookmarkBtn.dataset.feBound !== '1') {
       bookmarkBtn.dataset.feBound = '1';
@@ -368,6 +526,7 @@
 
   function syncLesson() {
     bindPageButtons();
+    state.stopAt = null;
     const data = lessonData();
     if (!data) {
       // Non-reader page (library, saved, account): keep playing.
@@ -497,6 +656,12 @@
     audio.addEventListener('timeupdate', () => {
       refreshSeek();
       maybePeriodicSave();
+      // R3: stop at the end of a sentence selected for isolated playback.
+      if (state.stopAt !== null && Number.isFinite(audio.currentTime) && audio.currentTime >= state.stopAt) {
+        state.stopAt = null;
+        try { audio.pause(); } catch (_) {}
+      }
+      refreshSentence(audio.currentTime);
     });
     audio.addEventListener('loadedmetadata', refreshSeek);
     audio.addEventListener('waiting', () => {

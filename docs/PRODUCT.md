@@ -22,6 +22,9 @@ Reference domain in scope documents: `fastenglishpodcast.com` — ownership/acce
 | LIB-02 | Find content | Level/category filter + simple title search |
 | READ-01 | Lesson page | Level selector, English body, audio of the same lesson version |
 | READ-02 | Key words | Small per-lesson glossary, no dictionary service |
+| READ-03 | Sentence audio cues | Staff-maintained sentence start/end times per audio revision; reader highlights the playing sentence and seeks on select; usable fallback when cues absent |
+| VOCAB-01 | Vocabulary notebook + SRS | Save lesson words with meaning/example/context; Again/Hard/Good/Easy review with deterministic next-review scheduling; due/learning/known states; owner-only |
+| PLAN-01 | Daily learning path | 5/10/15-minute goal with tasks (continue lesson, listen, review due words, next lesson) derived from persisted progress; respects level and premium access |
 | MEDIA-01 | Player | Play/pause, seek, ±10s, speed |
 | MEDIA-02 | Continue playback | In-layout navigation without unwanted stop; recoverable network error |
 | PROG-01 | Progress | Resume position + completed mark, independent per lesson version |
@@ -54,9 +57,19 @@ A level is a **content attribute, not an access permission** (scope §8). All pu
 - One open (`awaiting_receipt`/`pending`) request per user, enforced by partial unique index + server rule (§10.1, §14). Pending grants no new access.
 - Approval is one shared transactional action with fixed lock order (User → PaymentRequest → Subscription), idempotent replay, and `subscription_events.source_payment_request_id` unique (§11). Staff cannot approve their own request. Reject needs a public reason; cancelled/rejected history is preserved; resubmit creates a new request.
 
-## Non-goals (scope §4 — binding)
+## Non-goals (scope §4 — binding, as amended 2026-10-09)
 
-Bank gateway/bank API, auto/OCR receipt verification, SMS OTP, native iOS, store publishing, offline download of paid content, push, AI tutor, speaking, runtime AI/TTS, flashcards/SRS, full lesson translation, word-by-word highlight, public import pipeline, chart dashboard, streak/gamification, algorithmic recommender, coupons, affiliates, multi-teacher, multi-locale UI, dark mode. No standalone stats page (progress lives on lesson + continue surfaces). Cooperation/support start as info pages/links; no internal CRM/ticketing. Items enter only via explicit scope change + new acceptance criteria.
+Bank gateway/bank API, auto/OCR receipt verification, SMS OTP, native iOS, store publishing, offline download of paid content, push, AI tutor, speaking, runtime AI/TTS, full lesson translation, word-level alignment, public import pipeline, chart dashboard, streaks/leaderboards/achievements, algorithmic recommender, coupons, affiliates, multi-teacher, multi-locale UI. Sentence-level cues (READ-03), the vocabulary notebook with simple SRS (VOCAB-01), and the daily learning path (PLAN-01) are IN scope since the 2026-10-09 owner request below. No standalone stats page (progress lives on lesson + Today/continue surfaces). Cooperation/support start as info pages/links; no internal CRM/ticketing. Items enter only via explicit scope change + new acceptance criteria.
+
+## Owner-approved amendments 2026-10-09 (authoritative per scope §0; save-only, no behavior built this turn)
+
+1. Dark mode into v1 (removes `dark mode` from the §4 exclusion above). Light is the default; user chooses system, light, or dark. Reason: owner requires dark alongside light for parity with leading consumer audio/learning apps.
+2. Scope §17.1 restraint relaxed, narrowly: gradients/glow only in cover art + landing hero; motion only for state feedback/transitions with `prefers-reduced-motion`; shadows only via named elevation tokens. Reason: owner requires polished/distinctive finish.
+3. Navigation to mobile bottom tab bar (Library, Saved, Account) with mini-player above + safe-area padding; supersedes top-bar placement (scope §17.3 already assumes this). Reason: mobile audio-app pattern + polish.
+4. Every published topic shows a real cover: default generated abstract cover (GD, deterministic from slug, no baked text); staff may upload licensed photos each with a license record (source, license name, date checked, usage notes); no runtime third-party fetch. Reason: owner forbids empty placeholders; provenance must be auditable.
+5. Amber replaces the navy/blue identity from scope §17.1 (primary `#1D4ED8`, primary-hover `#1E40AF`) with the Night Studio amber scale (dark `#F5A524`, light `#B45309`, sepia `#92400E`); navy/blue is no longer the identity. Owner-approved on 2026-10-09 by owner direction. Reason: owner direction requires a distinctive polished palette with a warm amber signal for play/progress.
+6. Soft Day light theme (owner Softly inspiration, 2026-10-09) replaces the Night Studio light table and the §17.1 proposal values in code for learner app surfaces (canvas `#FDFCF8`, coral `#FFB7B2`/`#FF9E99`, text `#292524`, muted `#78716C`); sage `#E8EFE8` recorded for landing; perf-heavy effects excluded; landing markup untouched. Owner-approved on 2026-10-09 by owner direction. Reason: owner wants the Softly look in the app without the perf cost.
+7. Editorial redesign + three learning features into v1 (owner request 2026-10-09): (a) premium editorial visual identity from the supplied reference (warm ivory canvas, deep navy text, blue primary actions, warm amber accent; Vazirmatn Persian + Inter English; landing, Today «امروز», Discover «کشف مطالب», immersive reader, vocabulary «واژه‌ها», calm account, desktop sidebar + mobile four-tab nav «امروز/کشف/واژه‌ها/حساب»); (b) sentence-level immersive reading with real validated timing data and fallback (READ-03); (c) personal vocabulary notebook with deterministic Again/Hard/Good/Easy SRS (VOCAB-01); (d) personalized daily learning path with 5/10/15-minute goals derived from persisted progress (PLAN-01). Removes `flashcards/SRS` and `word-by-word highlight` from the §4 exclusion above in this narrow sense only: sentence-level sync is required, word-level alignment stays excluded; no third-party dictionary/translation/transcription/TTS API; streaks/leaderboards/achievements stay excluded. Reason: owner explicitly approved these three scope extensions and the reference visual direction.
 
 ## Measurement and operations
 

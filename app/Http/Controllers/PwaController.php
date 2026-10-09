@@ -38,8 +38,8 @@ class PwaController extends Controller
             'display' => 'standalone',
             'start_url' => '/app',
             'scope' => '/',
-            'background_color' => '#F8FAFC',
-            'theme_color' => '#1D4ED8',
+            'background_color' => '#F7F5EF',
+            'theme_color' => '#F7F5EF',
             'icons' => [
                 ['src' => '/icons/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
                 ['src' => '/icons/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],

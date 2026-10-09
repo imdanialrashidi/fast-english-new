@@ -10,7 +10,7 @@
 
     <livewire:update-display-name />
 
-    <p class="fe-muted">سطح ترجیحی: {{ auth()->user()->preferred_level ?? 'انتخاب نشده' }}</p>
+    <p class="fe-muted">سطح ترجیحی: {{ auth()->user()->preferred_level ?? 'انتخاب نشده' }} · هدف روزانه: {{ (int) (auth()->user()->daily_goal_minutes ?? 10) }} دقیقه</p>
 
     <section aria-label="وضعیت پرداخت و اشتراک">
         <h2>اشتراک و پرداخت</h2>
@@ -43,7 +43,9 @@
     </section>
 
     <div class="fe-reader-actions">
+        <a class="fe-btn" href="{{ route('today.index') }}" wire:navigate>امروز</a>
         <a class="fe-btn" href="{{ route('app.saved') }}" wire:navigate>ذخیره‌شده‌ها</a>
+        <a class="fe-btn" href="{{ route('words.index') }}" wire:navigate>واژه‌ها</a>
         <a class="fe-btn" href="{{ route('account.settings') }}" wire:navigate>تنظیمات</a>
         <a class="fe-btn" href="{{ route('placement.index') }}" wire:navigate>تعیین سطح</a>
     </div>

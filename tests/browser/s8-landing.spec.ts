@@ -12,7 +12,7 @@ async function checkLanding(page, width: number) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'انگلیسی را با خواندن و شنیدن متن‌های کوتاه تمرین کن' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'با داستان‌های واقعی انگلیسی را سریع‌تر یاد بگیر' })).toBeVisible();
 
   // No horizontal scroll.
   const scroll = await page.evaluate(() => ({
@@ -40,14 +40,15 @@ async function checkLanding(page, width: number) {
 test('S8 landing 360: draft promise, sample, preparing state, links', async ({ page }) => {
   await checkLanding(page, 360);
   await expect(page.getByText('DRAFT')).toBeVisible();
-  await expect(page.getByRole('link', { name: /مشاهده نمونه واقعی/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /شروع کنید/ }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'منتخبی از مطالب' })).toBeVisible();
   // Sales-on lane state: DB plan names with durations (never amounts),
   // a purchase CTA, and no preparing-state text.
   await expect(page.getByText('یک‌ماهه آزمایشی (TEST)')).toBeVisible();
   await expect(page.getByRole('link', { name: 'مشاهده پلن‌ها و خرید' }).first()).toBeVisible();
   await expect(page.getByText('در دست آماده‌سازی')).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'صفحه دانلود' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'مشاهده پرسش‌ها' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'مشاهده همه پرسش‌ها' })).toBeVisible();
   const html = await page.content();
   expect(html).toContain('lang="fa"');
   await page.screenshot({ path: 'test-results/browser-shots/s8-landing-360.png' });

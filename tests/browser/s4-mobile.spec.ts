@@ -57,7 +57,7 @@ for (const width of [360, 390]) {
     await page.setViewportSize({ width, height: 740 });
     await login(page, S4_MOBILE_USERS[width].reader);
     await page.goto(READER);
-    await page.locator('article.fe-english-body').waitFor();
+    await page.locator('ol.fe-sentences, article.fe-english-body').first().waitFor();
 
     const { scroll, inner } = await noHorizontalScroll(page);
     expect(scroll).toBeLessThanOrEqual(inner);
@@ -75,7 +75,7 @@ for (const width of [360, 390]) {
       if (!content || !bar) return null;
       const contentBottom = content.getBoundingClientRect().bottom;
       const barTop = bar.getBoundingClientRect().top;
-      const lastRow = document.querySelector('.fe-glossary-row:last-child, article.fe-english-body p:last-child');
+      const lastRow = document.querySelector('.fe-glossary-row:last-child, ol.fe-sentences li:last-child, article.fe-english-body p:last-child');
       const rowBottom = lastRow ? lastRow.getBoundingClientRect().bottom : contentBottom;
       return { contentBottom, barTop, rowBottom };
     });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lesson;
 use App\Models\Plan;
+use App\Models\Topic;
 use Illuminate\Http\Request;
 
 /**
@@ -35,9 +36,23 @@ class LandingController extends Controller
             ->orderBy('id')
             ->first();
 
+        // A small editorial selection of representative lessons.
+        $featured = Topic::query()
+            ->where('status', 'published')
+            ->whereHas('lessons', fn ($lessons) => $lessons->where('status', 'published'))
+            ->with(['lessons' => fn ($lessons) => $lessons
+                ->where('status', 'published')
+                ->orderBy('id'),
+            ])
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(3)
+            ->get();
+
         return response()->view('landing.index', [
             'plans' => $plans,
             'sample' => $sample,
+            'featured' => $featured,
             'salesOn' => (bool) config('sales.enabled', false),
         ]);
     }

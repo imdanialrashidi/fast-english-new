@@ -6,6 +6,7 @@ use App\Models\Bookmark;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\Topic;
+use App\Support\Sentences;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -70,6 +71,19 @@ class TopicReaderController extends Controller
 
         $this->authorizeLesson($lesson);
 
+        // R3 sentence cues: only the cues timed against the current audio
+        // revision are exposed, and only when their count matches the
+        // reader's sentence split. Otherwise the plain reader stays with
+        // an understandable fallback — the lesson remains completable.
+        $sentences = Sentences::split((string) $lesson->body_en);
+        $cues = is_array($lesson->audio_cues) ? $lesson->audio_cues : [];
+        $cuesUsable = $cues !== []
+            && (int) ($lesson->audio_cues_revision ?? 0) === (int) $lesson->audio_revision
+            && count($cues) === count($sentences);
+        if (! $cuesUsable) {
+            $cues = [];
+        }
+
         // S4 resume: owner-only, revision-isolated. No user write happens
         // here — the level in the URL never touches preferred_level.
         $initialPosition = 0.0;
@@ -97,6 +111,9 @@ class TopicReaderController extends Controller
                 'initialPosition' => $initialPosition,
                 'completedAt' => $completedAt,
                 'bookmarked' => $bookmarked,
+                'sentences' => $sentences,
+                'cues' => $cues,
+                'cuesUsable' => $cuesUsable,
             ])
             ->withHeaders($this->noStore());
     }

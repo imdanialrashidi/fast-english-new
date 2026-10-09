@@ -41,6 +41,9 @@ class User extends Authenticatable implements FilamentUser
             // S4: explicit preferred level only (LEVEL-01). Null means no
             // preference yet; browsing a ?level= URL never writes here.
             'preferred_level' => 'string',
+            // R5: explicit daily goal only (PLAN-01). Changing it never
+            // writes preferred_level.
+            'daily_goal_minutes' => 'integer',
         ];
     }
 
@@ -71,6 +74,15 @@ class User extends Authenticatable implements FilamentUser
     public function subscriptionEvents(): HasMany
     {
         return $this->hasMany(SubscriptionEvent::class);
+    }
+
+    /**
+     * R4 personal vocabulary notebook (VOCAB-01). Owner-only access is
+     * enforced in VocabularyWordPolicy, never in the client.
+     */
+    public function vocabularyWords(): HasMany
+    {
+        return $this->hasMany(VocabularyWord::class);
     }
 
     /**

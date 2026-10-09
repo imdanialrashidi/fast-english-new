@@ -16,9 +16,11 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StaffPlacementController;
 use App\Http\Controllers\StaffTwoFactorController;
 use App\Http\Controllers\SubscribeController;
+use App\Http\Controllers\TodayController;
 use App\Http\Controllers\TopicLibraryController;
 use App\Http\Controllers\TopicReaderController;
 use App\Http\Controllers\TrustController;
+use App\Http\Controllers\VocabularyController;
 use Illuminate\Support\Facades\Route;
 
 // S8 landing (scope §6, PUB-01): short Persian page with the promise,
@@ -86,6 +88,36 @@ Route::patch('/app/account/settings', [AccountSettingsController::class, 'update
 Route::get('/app/saved', [SavedTopicsController::class, 'index'])
     ->middleware(['auth', 'reject.disabled'])
     ->name('app.saved');
+
+// R5 Today — «امروز»: the principal signed-in student destination.
+Route::get('/app/today', [TodayController::class, 'index'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->name('today.index');
+
+// R4 vocabulary notebook (VOCAB-01): owner-scoped, private no-store.
+// The review page is registered before the {word} binding so /review
+// never resolves as a word id.
+Route::get('/app/words/review', [VocabularyController::class, 'review'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->name('words.review');
+Route::get('/app/words', [VocabularyController::class, 'index'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->name('words.index');
+Route::post('/app/words', [VocabularyController::class, 'store'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->name('words.store');
+Route::patch('/app/words/{word}', [VocabularyController::class, 'update'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->whereNumber('word')
+    ->name('words.update');
+Route::delete('/app/words/{word}', [VocabularyController::class, 'destroy'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->whereNumber('word')
+    ->name('words.destroy');
+Route::post('/app/words/{word}/grade', [VocabularyController::class, 'grade'])
+    ->middleware(['auth', 'reject.disabled'])
+    ->whereNumber('word')
+    ->name('words.grade');
 
 // S4 progress + bookmarks (scope §13.2–13.3): authenticated, policy-checked,
 // private no-store JSON. The service worker never caches these (POST +

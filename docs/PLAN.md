@@ -18,6 +18,11 @@ Binding sequence rules: S2 (early PWA/TWA proof) stays early so APK/media risk i
 | S7 — Placement | Optional test + result | Fixed 20-question version; hidden answer key; resume; idempotent submit; explicit preference change | PLACE-01, LEVEL-01 |
 | S8 — Public + release candidate | Short landing, SMTP, download, operations | Real copy; reset; metadata; release APK; monitoring + backup ready | PUB-01/02, AUTH-02, OPS-01 |
 | S9 — Pilot + handover | Full path on real devices + recovery | Final criteria PASS; real restore; known residual risks; handover docs | QA-01 + all needs |
+| R1 — Editorial foundations | Ivory/navy/blue/amber tokens + Inter; learner + desktop shell with «امروز/کشف/واژه‌ها/حساب» IA | Tokens own values; S3DesignTest pairs re-measured; shell renders at 360/1440 | Editorial direction |
+| R2 — Landing + Today + Discover | Real-data landing; Today plan/continue/goal/due/recommendations; editorial Discover | Sample without login; tasks open real lessons; one row per topic | PUB-01, LIB-01/02, PLAN-01 |
+| R3 — Immersive reader cues | `audio_cues` + staff editing + synced highlight/seek + fallback | Real cues seek correctly; missing cues stay usable | READ-01/03, MEDIA-01/02 |
+| R4 — Vocabulary SRS | Notebook + Again/Hard/Good/Easy scheduling, owner-only | Save/review/reschedule/remove persist; isolation | VOCAB-01 |
+| R5 — Daily path validation | Goal/progress from persisted state; premium/level respected | Incomplete stays incomplete after reload | PLAN-01 |
 
 ## S0 — first build slice (binding criteria)
 

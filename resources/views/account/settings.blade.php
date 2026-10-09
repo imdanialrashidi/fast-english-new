@@ -25,11 +25,22 @@
                 <p class="fe-alert" role="alert">{{ $message }}</p>
             @enderror
         </div>
+        <div class="fe-field">
+            <label for="daily-goal">هدف روزانه (دقیقه)</label>
+            <select id="daily-goal" name="daily_goal_minutes">
+                @foreach ([5, 10, 15] as $goal)
+                    <option value="{{ $goal }}" @selected((int) ($user->daily_goal_minutes ?? 10) === $goal)>{{ $goal }} دقیقه</option>
+                @endforeach
+            </select>
+            @error('daily_goal_minutes')
+                <p class="fe-alert" role="alert">{{ $message }}</p>
+            @enderror
+        </div>
         <div class="fe-field fe-field-actions">
             <button class="fe-btn fe-btn-primary" type="submit">ذخیره</button>
         </div>
     </form>
 
-    <p class="fe-muted">تغییر سطح در صفحه مطلب، سطح ترجیحی را تغییر نمی‌دهد.</p>
+    <p class="fe-muted">تغییر سطح در صفحه مطلب، سطح ترجیحی را تغییر نمی‌دهد. تغییر هدف روزانه، سطح ترجیحی را تغییر نمی‌دهد.</p>
 </div>
 @endsection

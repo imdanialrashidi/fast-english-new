@@ -3,16 +3,17 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Inter', 'Vazirmatn', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 /*
- * Fast English learner tokens (S1). Semantic source of truth for the
- * learner surface; values are the scope §17.1 PROPOSALS (see docs/DESIGN.md
- * for mapping, status, and measured contrast). Persian: self-hosted
- * Vazirmatn variable (public/fonts/vazirmatn, OFL beside the files).
- * English: system stack.
+ * Fast English editorial tokens ( Direction — Editorial Ivory,
+ * owner-approved 2026-10-09; see docs/DESIGN.md for mapping, roles, and
+ * measured contrast). The :root block owns every color value; components
+ * use only these variables (guarded by tests/Feature/S3DesignTest.php).
+ * Persian: self-hosted Vazirmatn variable (public/fonts/vazirmatn, OFL
+ * beside the files). English: Inter with a system fallback stack.
  */
 @font-face {
     font-family: 'Vazirmatn';
@@ -33,18 +34,24 @@
 }
 
 :root {
-    --fe-canvas: #f8fafc;
-    --fe-surface: #ffffff;
-    --fe-text: #0f172a;
-    --fe-muted-text: #475569;
-    --fe-border: #e2e8f0;
-    --fe-primary: #1d4ed8;
-    --fe-primary-hover: #1e40af;
+    --fe-canvas: #f7f5ef;
+    --fe-surface: #fffdf8;
+    --fe-text: #172238;
+    --fe-muted-text: #5b6372;
+    --fe-border: #e7dfd2;
+    --fe-input-border: #776b5b;
+    --fe-primary: #4263eb;
+    --fe-primary-hover: #364fc7;
     --fe-on-primary: #ffffff;
-    --fe-success: #15803d;
-    --fe-danger: #b91c1c;
+    --fe-accent: #e9ac52;
+    --fe-on-accent: #172238;
+    --fe-tint-lavender: #efedf4;
+    --fe-success: #0f766e;
+    --fe-danger: #be123c;
+    --fe-elev-1: 0 1px 2px rgb(59 46 31 / 0.1);
+    --fe-elev-2: 0 12px 32px rgb(59 46 31 / 0.14);
     --fe-font-fa: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
-    --fe-font-en: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --fe-font-en: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .fe-learner {
@@ -63,7 +70,8 @@
 .fe-surface {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-1);
 }
 
 .fe-muted {
@@ -73,12 +81,12 @@
 .fe-english-body {
     font-family: var(--fe-font-en);
     font-size: 18px;
-    line-height: 1.75;
+    line-height: 1.8;
     color: var(--fe-text);
 }
 
 .fe-english-body p {
-    margin-block: 0 1em;
+    margin-block: 0 1.1em;
 }
 
 /* Touch targets: at least 44x44 CSS px for every player/level control. */
@@ -94,7 +102,7 @@
     font-size: 1rem;
     font-family: var(--fe-font-fa);
     border: 1px solid var(--fe-border);
-    border-radius: 0.625rem;
+    border-radius: 999px;
     background: var(--fe-surface);
     color: var(--fe-text);
     cursor: pointer;
@@ -109,6 +117,13 @@
     color: var(--fe-on-primary);
 }
 
+.fe-btn-primary:hover,
+.fe-level-link[aria-current='page']:hover,
+.fe-speed-btn[aria-pressed='true']:hover {
+    background: var(--fe-primary-hover);
+    border-color: var(--fe-primary-hover);
+}
+
 .fe-level-link:not([aria-current='page']):hover,
 .fe-btn:not(.fe-btn-primary):hover,
 .fe-speed-btn:not([aria-pressed='true']):hover {
@@ -121,6 +136,17 @@
 .fe-seek:focus-visible {
     outline: 3px solid var(--fe-primary);
     outline-offset: 2px;
+}
+
+.fe-btn-accent {
+    background: var(--fe-accent);
+    border-color: var(--fe-accent);
+    color: var(--fe-on-accent);
+}
+
+.fe-btn-accent:hover {
+    background: var(--fe-accent);
+    border-color: var(--fe-text);
 }
 
 .fe-seek {
@@ -142,10 +168,13 @@
 .fe-playerbar {
     position: fixed;
     inset-inline: 0;
-    bottom: 0;
+    /* The mobile bottom tab bar owns the bottom edge; the player rides
+       above it. Desktop (≥1024px) retires the tab bar — see media query. */
+    bottom: calc(68px + env(safe-area-inset-bottom));
     z-index: 20;
     background: var(--fe-surface);
     border-top: 1px solid var(--fe-border);
+    border-radius: 1.25rem 1.25rem 0 0;
     padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
 }
 
@@ -170,18 +199,19 @@
     min-width: 3ch;
 }
 
-/* End-of-content clearance for the fixed player bar: the S4 bar carries a
-   mini-player line above the transport buttons, so the narrow-screen
-   height grows to ~300px (223px+ from 390px up in the normal state).
-   22rem clears every viewport without covering text. */
 .fe-main-pad {
-    padding-bottom: 22rem;
+    padding-bottom: 26rem;
 }
 
-/* S4 learner top navigation: three destinations, each a 44px target. */
+/* Learner top navigation (desktop) + bottom tab bar (mobile): four student
+   destinations — امروز / کشف / واژه‌ها / حساب. */
 .fe-topnav {
     background: var(--fe-surface);
-    border-bottom: 1px solid var(--fe-border);
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    box-shadow: var(--fe-elev-1);
+    max-width: min(744px, calc(100% - 2rem));
+    margin: 0.75rem auto 0;
 }
 
 .fe-topnav nav {
@@ -202,6 +232,12 @@
     font-size: 1rem;
     color: var(--fe-text);
     text-decoration: none;
+    border-radius: 999px;
+}
+
+.fe-nav-link[aria-current='page'] {
+    background: var(--fe-text);
+    color: var(--fe-surface);
 }
 
 .fe-nav-link:focus-visible {
@@ -209,7 +245,61 @@
     outline-offset: 2px;
 }
 
-/* S4 reader actions: bookmark + read/reset sit above the body. */
+/* Mobile bottom tab bar: the primary student navigation on narrow screens.
+   The fixed player bar sits above it; content padding clears both. */
+.fe-bottomnav {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 30;
+    background: var(--fe-surface);
+    border-top: 1px solid var(--fe-border);
+    padding: 0.25rem 0.5rem calc(0.25rem + env(safe-area-inset-bottom));
+}
+
+.fe-bottomnav nav {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.25rem;
+    max-width: 680px;
+    margin-inline: auto;
+}
+
+.fe-bottomnav a {
+    min-height: 52px;
+    display: grid;
+    gap: 0;
+    align-content: center;
+    justify-items: center;
+    font-size: 0.8125rem;
+    color: var(--fe-muted-text);
+    text-decoration: none;
+    border-radius: 1rem;
+    padding-block: 0.375rem;
+}
+
+.fe-bottomnav a[aria-current='page'] {
+    color: var(--fe-text);
+    font-weight: 700;
+}
+
+.fe-bottomnav a:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+/* Desktop shell: sidebar takes the navigation; the bottom tab bar and
+       the floating top pill retire at this width; the player returns to
+       the bottom edge. */
+.fe-shell {
+    display: block;
+}
+
+.fe-sidebar {
+    display: none;
+}
+
+/* Reader actions: bookmark + read/reset sit above the body. */
 .fe-reader-actions {
     display: flex;
     gap: 0.5rem;
@@ -217,17 +307,16 @@
     margin-block: 0.75rem;
 }
 
-/* S7 placement options: each answer label is a 44px touch target reusing
-   learner tokens only (no new colors). The radio itself stays visible;
-   the label carries the target size for narrow viewports. */
+/* Placement options: each answer label is a 44px touch target reusing
+   learner tokens only (no new colors). */
 .fe-option {
     min-height: 44px;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 0.75rem;
-    border: 1px solid var(--fe-border);
-    border-radius: 0.625rem;
+    border: 1px solid var(--fe-input-border);
+    border-radius: 1rem;
     background: var(--fe-surface);
     color: var(--fe-text);
     font-size: 1rem;
@@ -258,7 +347,7 @@
     background: var(--fe-surface);
     color: var(--fe-text);
     border: 1px solid var(--fe-border);
-    border-radius: 0.625rem;
+    border-radius: 999px;
     padding: 0.5rem 1rem;
     min-width: 44px;
     min-height: 44px;
@@ -275,11 +364,11 @@
     border: 1px solid var(--fe-danger);
     color: var(--fe-danger);
     background: var(--fe-surface);
-    border-radius: 0.625rem;
+    border-radius: 1rem;
     padding: 0.75rem 1rem;
 }
 
-/* S2 PWA update notice: brief banner with a user-triggered refresh. The
+/* PWA update notice: brief banner with a user-triggered refresh. The
    new service worker never reloads on its own (see resources/js/pwa.js). */
 #pwa-update {
     position: fixed;
@@ -291,8 +380,9 @@
     justify-content: space-between;
     gap: 0.75rem;
     background: var(--fe-text);
-    color: var(--fe-on-primary);
-    border-radius: 0.625rem;
+    color: var(--fe-surface);
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-2);
     padding: 0.75rem 1rem;
     font-size: 1rem;
 }
@@ -300,18 +390,17 @@
 #pwa-refresh {
     min-height: 44px;
     min-width: 44px;
-    background: var(--fe-on-primary);
-    color: var(--fe-primary);
+    background: var(--fe-accent);
+    color: var(--fe-on-accent);
     border: none;
-    border-radius: 0.5rem;
+    border-radius: 999px;
     padding: 0.625rem 1.25rem;
     font-size: 1rem;
     cursor: pointer;
 }
 
-/* S3 library (scope §17.2): one card per topic. No new colors — every
-   text pair reuses the measured tokens (text/muted on surface/canvas,
-   on-primary on primary). Cover keeps a fixed 16/9 aspect ratio. */
+/* Library: one card per topic. Every text pair reuses the measured
+   tokens. Cover keeps a fixed 16/9 aspect ratio. */
 .fe-library {
     display: grid;
     gap: 1rem;
@@ -322,7 +411,8 @@
     gap: 0.75rem;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-1);
     padding: 1rem;
 }
 
@@ -348,8 +438,8 @@
     font-family: var(--fe-font-fa);
     color: var(--fe-text);
     background: var(--fe-surface);
-    border: 1px solid var(--fe-border);
-    border-radius: 0.625rem;
+    border: 1px solid var(--fe-input-border);
+    border-radius: 999px;
     padding: 0.5rem 0.75rem;
     width: 100%;
 }
@@ -384,7 +474,8 @@
 .fe-card {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-1);
     overflow: hidden;
 }
 
@@ -408,11 +499,8 @@
     background: var(--fe-canvas);
 }
 
-/* S4 pre-slice: one fixed aspect-ratio container for every card. The
-   wrapper owns the 16/9 ratio (16/9 = 1.777...); the inner img or
-   placeholder fills it. Measuring the wrapper is exact across widths:
-   the earlier 1.68-1.88 range in S3-7 was the tolerance around 1.777
-   for subpixel rounding and border-box measurement at 320-390 px. */
+/* One fixed aspect-ratio container for every card. The wrapper owns the
+   16/9 ratio; the inner img or placeholder fills it. */
 .fe-card-media {
     display: block;
     width: 100%;
@@ -426,7 +514,8 @@
     align-items: center;
     justify-content: center;
     font-size: 2rem;
-    color: var(--fe-muted-text);
+    color: var(--fe-text);
+    background: var(--fe-tint-lavender);
 }
 
 .fe-card-body {
@@ -451,7 +540,8 @@
 .fe-empty {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-1);
     padding: 1.5rem 1rem;
     display: grid;
     gap: 0.75rem;
@@ -474,7 +564,7 @@
     justify-content: center;
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--fe-border);
-    border-radius: 0.625rem;
+    border-radius: 999px;
     background: var(--fe-surface);
     color: var(--fe-text);
     text-decoration: none;
@@ -487,14 +577,16 @@
     color: var(--fe-on-primary);
 }
 
-/* S3 reader additions: bounded cover + active-lesson glossary. */
+/* Reader: bounded cover + active-lesson glossary + sentence sync. The
+   reader keeps one deliberately designed column; sentences are plain
+   text rows, never cards. */
 .fe-cover {
     display: block;
     width: 100%;
     max-height: 15rem;
     object-fit: cover;
     border: 1px solid var(--fe-border);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
 }
 
 .fe-glossary {
@@ -507,7 +599,7 @@
 .fe-glossary-row {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 0.625rem;
+    border-radius: 1rem;
     padding: 0.75rem 1rem;
     display: grid;
     gap: 0.125rem;
@@ -524,28 +616,49 @@
     color: var(--fe-text);
 }
 
-@media (min-width: 640px) {
-    .fe-filters {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .fe-field-search {
-        grid-column: 1 / -1;
-    }
-
-    .fe-cards {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* Sentence-level reading: each cue-backed sentence is a selectable row.
+   The playing sentence carries the amber marker; color is never the sole
+   signal (aria-current + marker text). */
+.fe-sentences {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-@media (min-width: 1024px) {
-    .fe-cards {
-        grid-template-columns: repeat(3, 1fr);
-    }
+.fe-sentence {
+    width: 100%;
+    text-align: start;
+    font-family: var(--fe-font-en);
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--fe-text);
+    background: transparent;
+    border: 1px solid transparent;
+    border-inline-start-width: 4px;
+    border-radius: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    cursor: pointer;
+    min-height: 44px;
 }
 
-/* S8 public pages (scope §6, §19): landing + trust + download reuse
-   learner tokens only — no new colors (guarded by S3DesignTest). */
+.fe-sentence:hover {
+    background: var(--fe-surface);
+}
+
+.fe-sentence:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-sentence[aria-current='true'] {
+    background: var(--fe-surface);
+    border-inline-start-color: var(--fe-accent);
+    border-color: var(--fe-border);
+}
+
+/* Editorial landing + Today surfaces. */
 .fe-public {
     display: grid;
     gap: 1.5rem;
@@ -565,10 +678,10 @@
 
 .fe-draft-badge {
     display: inline-block;
-    border: 1px dashed var(--fe-primary);
-    color: var(--fe-primary);
-    background: var(--fe-surface);
-    border-radius: 0.625rem;
+    border: 1px solid var(--fe-accent);
+    color: var(--fe-on-accent);
+    background: var(--fe-accent);
+    border-radius: 999px;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
     margin: 0;
@@ -578,7 +691,7 @@
     border: 1px solid var(--fe-danger);
     background: var(--fe-surface);
     color: var(--fe-text);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
     padding: 1rem;
     display: grid;
     gap: 0.5rem;
@@ -609,12 +722,216 @@
     margin: 0;
 }
 
+/* Editorial hero: promise + action + image in one composed block. The
+   editorial image keeps a fixed crop; copy never overlaps it. */
+.fe-hero-editorial {
+    display: grid;
+    gap: 1rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-2);
+    padding: 1.5rem 1.25rem;
+    overflow: hidden;
+}
+
+.fe-hero-editorial h1 {
+    font-size: 1.75rem;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.fe-hero-media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: var(--fe-canvas);
+}
+
+.fe-hero-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fe-section-title {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+/* Today: greeting + continue + plan + goal ring + vocab-due + picks. */
+.fe-today {
+    display: grid;
+    gap: 1rem;
+}
+
+.fe-continue {
+    display: grid;
+    gap: 0.75rem;
+    background: var(--fe-text);
+    color: var(--fe-surface);
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-2);
+    padding: 1.25rem 1rem;
+    overflow: hidden;
+}
+
+.fe-continue h2 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.fe-continue p {
+    margin: 0;
+}
+
+.fe-continue .fe-muted {
+    color: var(--fe-surface);
+    opacity: 0.8;
+}
+
+.fe-continue .fe-btn-primary {
+    justify-self: start;
+}
+
+.fe-plan {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.fe-plan-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1rem;
+    padding: 0.625rem 0.875rem;
+    min-height: 44px;
+}
+
+.fe-plan-row a {
+    color: var(--fe-text);
+    text-decoration: none;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.fe-plan-row a:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-plan-check {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    border: 2px solid var(--fe-input-border);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    color: var(--fe-surface);
+}
+
+.fe-plan-row[data-done='1'] .fe-plan-check {
+    background: var(--fe-success);
+    border-color: var(--fe-success);
+}
+
+/* Daily-goal ring: progress signal in amber, text labels the numbers. */
+.fe-goal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-1);
+    padding: 1rem;
+}
+
+.fe-ring {
+    --fe-ring-pct: 0;
+    flex-shrink: 0;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-family: var(--fe-font-en);
+    font-weight: 700;
+    background: conic-gradient(var(--fe-accent) calc(var(--fe-ring-pct) * 1%), var(--fe-border) 0);
+}
+
+.fe-ring span {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 999px;
+    background: var(--fe-surface);
+    display: grid;
+    place-items: center;
+    color: var(--fe-text);
+}
+
+/* Vocabulary notebook + review. */
+.fe-vocab-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1rem;
+    padding: 0.625rem 0.875rem;
+}
+
+.fe-vocab-word {
+    font-family: var(--fe-font-en);
+    font-weight: 700;
+    color: var(--fe-text);
+}
+
+.fe-flash {
+    display: grid;
+    gap: 1rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1.5rem;
+    box-shadow: var(--fe-elev-2);
+    padding: 2rem 1.25rem;
+    text-align: center;
+    justify-items: center;
+}
+
+.fe-flash-word {
+    font-family: var(--fe-font-en);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--fe-text);
+}
+
+.fe-grade-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+}
+
 .fe-meta-table {
     width: 100%;
     border-collapse: collapse;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 0.75rem;
+    border-radius: 1.5rem;
     overflow: hidden;
 }
 
@@ -658,6 +975,94 @@
 .fe-footer a:focus-visible {
     outline: 3px solid var(--fe-primary);
     outline-offset: 2px;
+}
+
+@media (min-width: 640px) {
+    .fe-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .fe-field-search {
+        grid-column: 1 / -1;
+    }
+
+    .fe-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .fe-hero-editorial h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .fe-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Desktop shell: sidebar takes the navigation; the bottom tab bar and
+       the floating top pill retire at this width. */
+    .fe-shell {
+        display: grid;
+        grid-template-columns: 16rem minmax(0, 1fr);
+        gap: 1.5rem;
+        max-width: 72rem;
+        margin-inline: auto;
+        padding-inline: 1.5rem;
+        align-items: start;
+    }
+
+    .fe-topnav,
+    .fe-bottomnav {
+        display: none;
+    }
+
+    .fe-sidebar {
+        display: grid;
+        gap: 0.25rem;
+        position: sticky;
+        top: 1rem;
+        background: var(--fe-surface);
+        border: 1px solid var(--fe-border);
+        border-radius: 1.5rem;
+        box-shadow: var(--fe-elev-1);
+        padding: 1rem 0.75rem;
+    }
+
+    .fe-sidebar-brand {
+        font-family: var(--fe-font-en);
+        font-weight: 700;
+        padding: 0.5rem 0.75rem;
+        color: var(--fe-text);
+    }
+
+    .fe-sidebar a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        border-radius: 1rem;
+        color: var(--fe-text);
+        text-decoration: none;
+    }
+
+    .fe-sidebar a[aria-current='page'] {
+        background: var(--fe-text);
+        color: var(--fe-surface);
+    }
+
+    .fe-sidebar a:focus-visible {
+        outline: 3px solid var(--fe-primary);
+        outline-offset: 2px;
+    }
+
+    .fe-playerbar {
+        bottom: 0;
+    }
+
+    .fe-main-pad {
+        padding-bottom: 16rem;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
