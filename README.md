@@ -535,3 +535,32 @@ node scripts/verify-package-integrity.mjs --online
 ## License
 
 No license has been selected yet. The repository owner must choose and add one before presenting the template as reusable; this legal/product decision is intentionally not guessed by the workflow.
+
+## Fast English app (S0 scaffold)
+
+S0 contract scaffold for the Fast English rebuild: Laravel 13 + Livewire 4 +
+Fortify auth + Filament 5 staff panel + PostgreSQL, with one account page
+(display-name mutation) and the `is_staff` / `disabled_at` user fields.
+See `docs/exec-plans/active/fast-english-rebuild.md` (S0 section) and
+`docs/PLAN.md` for the binding criteria. Product contracts live in
+`docs/PRODUCT.md`, `docs/DESIGN.md`, `docs/ARCHITECTURE.md`,
+`docs/QUALITY.md`.
+
+Resolved S0 versions: PHP 8.4.26 · Laravel 13.35.0 · Livewire 4.4.7 ·
+Fortify 1.41.0 · Filament 5.10.1 · Pest 4.7.8 (PHPUnit 12.5.33) · Pint 1.32.1 ·
+Node 22.23.2 · Tailwind 4.3.3 · Vite 8.3.3 · Playwright 1.64.0 ·
+PostgreSQL 17.11. Pins: `composer.json` (`php: ^8.4`), `.nvmrc` +
+`package.json` engines (Node 22.23.2), `composer.lock` + `package-lock.json`.
+
+Local setup (PostgreSQL required; no SQLite substitute):
+
+```bash
+cp .env.example .env
+php artisan key:generate
+composer install
+npm install
+npm run build
+# point DB_* at a local PostgreSQL, then:
+php artisan migrate
+php artisan test   # Pest suite runs on PostgreSQL (phpunit.xml)
+```

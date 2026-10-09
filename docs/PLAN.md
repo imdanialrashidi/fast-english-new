@@ -1,89 +1,46 @@
-# Product Roadmap
+# Fast English — Roadmap (S0 → S9)
 
-Use this file for the product-level path from idea to production. Put task-level, multi-session execution state in `docs/exec-plans/active/`. Delete inapplicable stages and stale commitments.
+Source: scope §21 (staged plan), §3 (requirement IDs), §23 (acceptance), §25 (launch inputs). Order follows risk and dependency, not day estimates. Each stage may hold several small slices. UI, data, and authorization for one outcome are built together — no "backend-only for weeks then frontend-only" (§21).
 
-## Outcome and boundaries
+Binding sequence rules: S2 (early PWA/TWA proof) stays early so APK/media risk is not deferred to the end (§21). Staff panel is scaffolded only as far as needed for the first real content; **financial Filament resources are not built before S5/S6** (§21).
 
-- Product outcome:
-- Measurable success:
-- Explicit non-goals:
-- Deadline / capital / compliance constraints:
-- Current stage:
+## Stage map
 
-## Evidence ledger
-
-| Claim or assumption | Status | Evidence | Next test / decision |
+| Stage | Output | Main exit conditions | Needs |
 |---|---|---|---|
-|  | confirmed / assumed / blocked / unmeasured |  |  |
+| S0 — Contract + scaffold | Fresh repo, contracts, compatible dependencies | Install/locks valid; auth + one sample Livewire component + one Filament panel work; first plan/evidence recorded. Criteria S0-1…S0-5 below | AUTH-01, QA-01 |
+| S1 — Real text/audio path | One topic, two levels, mobile reader | Real DB-driven content; sample without login; real audio/seek; no cross-level mixing | READ-01, MEDIA-01 |
+| S2 — Early mobile proof | Small PWA + TWA on staging HTTPS | Android/iPhone install; signing/domain correct; cookie/session + audio; no private cache | MOB-01/02 |
+| S3 — Content + library | Constrained Filament content + library | Drafts hidden; valid publish; one result per topic; filter/search; public sample | ADM-01, LIB-01/02, READ-02 |
+| S4 — Returning user | Progress, bookmarks, account, level preference | Refresh resume; version/revision isolation; unique bookmarks; explicit settings | PROG-01, SAVE-01, LEVEL-01, MEDIA-02 |
+| S5 — Payment submission | Plans, snapshot, receipt, status | Pre-transfer snapshot; private file; one open request; validation/retry; ownership denial | PAY-01/02, ADM-02 |
+| S6 — Review + entitlement | Approval/rejection + subscription | Real replay/race; expiry/revoke; self-approval ban; audit; premium deny/allow | PAY-03, SUB-01 |
+| S7 — Placement | Optional test + result | Fixed 20-question version; hidden answer key; resume; idempotent submit; explicit preference change | PLACE-01, LEVEL-01 |
+| S8 — Public + release candidate | Short landing, SMTP, download, operations | Real copy; reset; metadata; release APK; monitoring + backup ready | PUB-01/02, AUTH-02, OPS-01 |
+| S9 — Pilot + handover | Full path on real devices + recovery | Final criteria PASS; real restore; known residual risks; handover docs | QA-01 + all needs |
 
-## Stage gates
+## S0 — first build slice (binding criteria)
 
-### 0. Discovery proof
+Non-goals for S0: real lessons library, player polish, PWA/TWA builds, payments, subscriptions, placement, public landing copy, performance tuning.
 
-- Scope: target user, painful job, current alternative, riskiest assumption.
-- Exit evidence: user/problem signal and a measurable product thesis in `docs/PRODUCT.md`.
-- Next smallest experiment:
+- [ ] S0-1 — Dependency resolution is reproducible: `composer.lock` + `package-lock.json` committed, PHP/Node pins recorded, install + Vite build succeed on a clean checkout. Covers QA-01 (scaffold leg). Proof: clean-install + build log.
+- [ ] S0-2 — Auth works: register/login/logout with wrong-password rejection and session surviving refresh. Covers AUTH-01. Proof: Pest auth tests on PostgreSQL.
+- [ ] S0-3 — One Livewire 4 component renders and mutates server state with validation (no secret/answer-key in hydration). Covers AUTH-01/QA-01 skeleton. Proof: Pest Livewire test + rendered page.
+- [ ] S0-4 — One Filament 5 staff panel loads behind `canAccessPanel` + policy; students denied; no learner-layout asset leakage. Covers ADM-01 skeleton (content-side only — no financial resources). Proof: policy negative-path test.
+- [ ] S0-5 — Contracts and plan landed: PRODUCT/DESIGN/ARCHITECTURE/QUALITY/PLAN + active exec plan reference scope sections; S1 skeleton named. Covers QA-01 (plan leg). Proof: documentation review (this turn; runtime compatibility explicitly NOT claimed until S0 executes).
 
-### 1. Experience direction
+## Later-slice acceptance pointers
 
-- Scope: critical journey, information architecture, content, brand character, visual thesis, prototype.
-- Exit evidence: accepted `docs/DESIGN.md`; critical states and desktop/mobile proof plan defined.
-- Decision owner:
+- S1 covers AC-01 (sample leg), AC-04, AC-05 with a real two-level text+audio path and real MP3 Range proof.
+- S2 covers AC-19/AC-20 early legs (install + signing/domain + no-private-cache) on staging; full device PASS only with real devices.
+- S3 covers AC-03, AC-04 (glossary leg), AC-17 (content leg).
+- S4 covers AC-06, AC-07, AC-08, AC-03 (continue leg).
+- S5 covers AC-10, AC-11.
+- S6 covers AC-12, AC-13, AC-14, AC-15, AC-16.
+- S7 covers AC-09.
+- S8 covers AC-01/02 (public legs), AC-18, AC-21, AC-23 (copy/infra legs).
+- S9 covers AC-19/20/21/22/23 final PASS + full AC sweep.
 
-### 2. Walking skeleton
+## Fixtures vs launch boundaries
 
-- Scope: one deployable end-to-end path through real boundaries with observability.
-- Exit evidence: canonical install/start/test path works; architecture and rollback assumptions are proven.
-- Verification:
-
-### 3. Vertical MVP
-
-- Scope: smallest useful end-to-end behavior that tests the riskiest product assumption.
-- Exit evidence: must-have journeys function with real data/state, negative paths, analytics, and accepted visual quality.
-- Non-goals:
-
-### 4. Internal alpha
-
-- Scope: team use with seeded/realistic data and controlled failure testing.
-- Exit evidence: no release-blocking correctness/security/accessibility issues; support and recovery path exercised.
-- Feedback sample / owner:
-
-### 5. External beta
-
-- Scope: bounded cohort, feature flags or reversible rollout, support channel.
-- Exit evidence: activation and guardrail metrics meet targets; field performance and reliability are measured; top UX failures resolved.
-- Rollback trigger:
-
-### 6. Release candidate
-
-- Scope: frozen release boundary; compatibility, data, security, visual, performance, operational hardening.
-- Exit evidence: `/ship` is `READY`; no unresolved BLOCKER/MAJOR; recovery/rollback and runbook proven.
-- Sign-off owners:
-
-### 7. Staged production
-
-- Scope: progressive exposure with telemetry and explicit stop conditions.
-- Exit evidence: health window passes at each stage; incident/support ownership is active.
-- Stages and stop conditions:
-
-### 8. Learning loop
-
-- Scope: product outcomes, failures, support signals, agent/harness evals.
-- Exit evidence: validated learning changes `docs/PRODUCT.md`, roadmap priorities, regression tests, or workflow eval cases.
-- Review cadence:
-
-## Critical path and risks
-
-| Risk / dependency | Control or experiment | Owner | Decision date / trigger |
-|---|---|---|---|
-|  |  |  |  |
-
-## Next bounded slice
-
-- Goal:
-- Acceptance proof:
-- Recovery / rollback:
-
-## Deferred decisions
-
--
+Dev/test fixtures (clearly labelled, never production): test users/staff, one topic with two real lessons, one local/test-only valid subscription seed, synthetic receipt fixture (§21). Seeds never create free production subscriptions or default credentials (§21). Missing real prices, bank destination, legal text, brand, domain, SMTP, signing identity, hosting, staff roster, or content (§25) disables only its commercial boundary (public sale / public exam / release APK / real email) with a clear BLOCKED state — local/staging work continues on fixtures. No fabricated price/card/legal text is ever used for sale (§25).

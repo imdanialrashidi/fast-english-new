@@ -36,6 +36,10 @@ Do not add tests by default: identify a plausible regression and a gap in existi
 - Use exact search, focused source/tests and installed types before broader retrieval. Verify changing technical facts with current primary sources.
 - Route by capability, not model name. Missing vision, browser, tools or context capacity leaves dependent criteria `UNPROVEN`; never invent evidence or silently change providers.
 
+## Fast English rebuild map
+
+Baseline: `docs/FAST_ENGLISH_BUILD_SCOPE_FA.md` v1.0. Contracts: `docs/PRODUCT.md`, `docs/DESIGN.md`, `docs/ARCHITECTURE.md`, `docs/QUALITY.md`, `docs/PLAN.md`; durable plan in `docs/exec-plans/active/fast-english-rebuild.md`. Authority: latest owner instruction, then scope, then these docs. Proposals stay proposals; launch inputs in scope section 25 block only their boundary.
+
 ## Automatic PR handoff
 
 For user-requested implementation, follow `docs/GIT_POLICY.md`: prepare the fixed `ai-changes` lane before editing (the helper creates it from `main` if absent), then automatically commit the scoped verified change, push, and create/update its PR to `main` using `node scripts/ai-pr.mjs`. No per-task branches; pass the exact PR number only for related work. Read-only/local-only requests and evals do not publish. Main writes, PR merge/close, releases, deployment, other Git mutations, and changes to this policy still require exact owner authorization.

@@ -1,0 +1,581 @@
+/**
+ * S4 persistent player: one HTMLAudioElement in the learner layout under
+ * @persist('fe-player'), surviving Livewire in-app navigation between the
+ * library, reader, saved, and account pages.
+ *
+ * - Single state owner (window.__fePlayer), listeners bound once for the
+ *   persisted controls; page-specific buttons (bookmark, mark-read, reset)
+ *   rebind on each navigation because their elements are replaced.
+ * - S1 controls kept: play/pause labels, native range seek (drag +
+ *   keyboard, RTL-aware), ±10 s clamped, speeds 0.75/1/1.25/1.5,
+ *   no autoplay, play-rejection/buffering/network errors with retry.
+ * - Mini-player (#mini-player) shows the current topic and level.
+ * - Opening a different lesson/level stops the current audio, loads the new
+ *   source, seeks to the saved position (revision-isolated), and stays
+ *   paused. Same-lesson navigation keeps the current time.
+ * - Logout and admin navigation stop the audio, clear its source, and rely
+ *   on full navigation (forms/links without wire:navigate).
+ * - Progress (authenticated only): at most every 15 s while playing, plus
+ *   pause and ended. pagehide/visibilitychange are best-effort. Failures
+ *   show #progress-error + #progress-retry and never claim success.
+ * - Completion only from ended (natural, not seek-driven) or the explicit
+ *   #mark-read button; seeking to the end never completes. Reset via
+ *   #reset-progress clears completion only.
+ * - Guest level preference: the chosen level (A1–C2 only) is kept in
+ *   localStorage as non-sensitive UI state; no token, receipt, body, or
+ *   answer key ever enters storage.
+ */
+(function () {
+  if (window.__fePlayerBound) {
+    return;
+  }
+  window.__fePlayerBound = true;
+
+  const audio = document.getElementById('lesson-audio');
+  if (!audio) return;
+
+  const state = (window.__fePlayer = window.__fePlayer || {
+    lessonId: null,
+    revision: null,
+    authenticated: false,
+    lastSave: 0,
+    pendingSave: null,
+    suppressEndedOnce: false,
+    appliedInitialFor: null,
+  });
+
+  const STEP = 10;
+  const SPEEDS = [0.75, 1, 1.25, 1.5];
+  const SAVE_INTERVAL_MS = 15000;
+  const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+  function $(id) {
+    return document.getElementById(id);
+  }
+
+  function fmt(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return '–:––';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
+  function csrf() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+  }
+
+  function lessonData() {
+    const el = document.getElementById('fe-lesson-data');
+    if (!el) return null;
+    return {
+      lessonId: Number(el.dataset.lessonId),
+      audioUrl: el.dataset.audioUrl,
+      revision: Number(el.dataset.revision),
+      initialPosition: Number(el.dataset.initialPosition || 0),
+      topic: el.dataset.topic || '',
+      level: el.dataset.level || '',
+      authenticated: el.dataset.authenticated === '1',
+    };
+  }
+
+  function showError(message) {
+    const errorBox = $('player-error');
+    const retryBtn = $('player-retry');
+    if (!errorBox || !retryBtn) return;
+    errorBox.textContent = message;
+    errorBox.hidden = false;
+    retryBtn.hidden = false;
+  }
+
+  function clearError() {
+    const errorBox = $('player-error');
+    const retryBtn = $('player-retry');
+    if (!errorBox || !retryBtn) return;
+    errorBox.textContent = '';
+    errorBox.hidden = true;
+    retryBtn.hidden = true;
+  }
+
+  function showProgressError(message) {
+    const box = $('progress-error');
+    const retry = $('progress-retry');
+    if (!box || !retry) return;
+    box.textContent = message;
+    box.hidden = false;
+    retry.hidden = false;
+  }
+
+  function clearProgressError() {
+    const box = $('progress-error');
+    const retry = $('progress-retry');
+    if (!box || !retry) return;
+    box.textContent = '';
+    box.hidden = true;
+    retry.hidden = true;
+  }
+
+  function clampTime(t) {
+    const d = audio.duration;
+    if (Number.isFinite(d)) return Math.min(Math.max(t, 0), d);
+    return Math.max(t, 0);
+  }
+
+  function refreshPlayLabel() {
+    const playBtn = $('player-play');
+    if (playBtn) playBtn.textContent = audio.paused ? 'پخش' : 'توقف';
+  }
+
+  function refreshSeek() {
+    const seek = $('player-seek');
+    const cur = $('player-current');
+    const dur = $('player-duration');
+    if (!seek || !cur || !dur) return;
+    const d = audio.duration;
+    if (Number.isFinite(d) && d > 0) {
+      seek.max = String(d);
+      seek.value = String(clampTime(audio.currentTime));
+      dur.textContent = fmt(d);
+    }
+    cur.textContent = fmt(audio.currentTime);
+  }
+
+  function setMiniPlayer(topic, level) {
+    const mini = $('mini-player');
+    if (!mini) return;
+    if (topic && level) {
+      mini.textContent = `در حال پخش: ${topic} (${level})`;
+    } else {
+      mini.textContent = 'پخش‌کننده آماده است';
+    }
+  }
+
+  function stopAndClear(reason) {
+    try {
+      audio.pause();
+    } catch (_) {}
+    audio.removeAttribute('src');
+    try {
+      audio.load();
+    } catch (_) {}
+    state.lessonId = null;
+    state.revision = null;
+    state.appliedInitialFor = null;
+    setMiniPlayer('', '');
+    refreshPlayLabel();
+    refreshSeek();
+    if (reason) {
+      const status = $('player-status');
+      if (status) status.textContent = '';
+    }
+  }
+
+  async function saveProgress(position, opts = {}) {
+    if (!state.authenticated || state.lessonId === null) return;
+    const payload = {
+      lesson_id: state.lessonId,
+      audio_revision: state.revision,
+      position_seconds: Math.max(0, Number(position)),
+    };
+    if (!Number.isFinite(payload.position_seconds)) return;
+    try {
+      const res = await fetch('/app/progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload),
+      });
+      if (res.status === 409) {
+        // Stale revision: adopt the server's current position, never apply
+        // old progress to the new audio.
+        const data = await res.json().catch(() => null);
+        if (data && typeof data.position_seconds === 'number') {
+          audio.currentTime = clampTime(data.position_seconds);
+        }
+        if (!opts.silent) showProgressError('نسخه صوت تغییر کرده است. موقعیت جدید بارگذاری شد.');
+        return;
+      }
+      if (!res.ok) {
+        throw new Error(`save failed: ${res.status}`);
+      }
+      clearProgressError();
+      state.lastSave = Date.now();
+      state.pendingSave = null;
+    } catch (_) {
+      state.pendingSave = payload;
+      if (!opts.silent) {
+        showProgressError('ذخیره پیشرفت ناموفق بود. اتصال را بررسی کنید و دوباره تلاش کنید.');
+      }
+    }
+  }
+
+  function maybePeriodicSave() {
+    if (audio.paused) return;
+    if (!state.authenticated || state.lessonId === null) return;
+    if (Date.now() - state.lastSave < SAVE_INTERVAL_MS) return;
+    saveProgress(audio.currentTime, { silent: true });
+  }
+
+  async function completeLesson() {
+    if (!state.authenticated || state.lessonId === null) return;
+    try {
+      const res = await fetch('/app/progress/complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrf(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({
+          lesson_id: state.lessonId,
+          audio_revision: state.revision,
+        }),
+      });
+      if (!res.ok) throw new Error(`complete failed: ${res.status}`);
+      clearProgressError();
+      const markBtn = $('mark-read');
+      if (markBtn) markBtn.hidden = true;
+      let resetBtn = $('reset-progress');
+      if (!resetBtn) {
+        resetBtn = document.createElement('button');
+        resetBtn.id = 'reset-progress';
+        resetBtn.className = 'fe-btn';
+        resetBtn.type = 'button';
+        resetBtn.textContent = 'شروع دوباره';
+        resetBtn.dataset.lessonId = String(state.lessonId);
+        markBtn?.after(resetBtn);
+        bindResetButton(resetBtn);
+      } else {
+        resetBtn.hidden = false;
+      }
+    } catch (_) {
+      showProgressError('ثبت تکمیل ناموفق بود. دوباره تلاش کنید.');
+    }
+  }
+
+  function bindResetButton(btn) {
+    if (!btn || btn.dataset.feBound === '1') return;
+    btn.dataset.feBound = '1';
+    btn.addEventListener('click', async () => {
+      const lessonId = Number(btn.dataset.lessonId || state.lessonId);
+      if (!Number.isFinite(lessonId)) return;
+      try {
+        const res = await fetch('/app/progress/reset', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': csrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ lesson_id: lessonId }),
+        });
+        if (!res.ok) throw new Error(`reset failed: ${res.status}`);
+        clearProgressError();
+        btn.hidden = true;
+        const markBtn = $('mark-read');
+        if (markBtn) markBtn.hidden = false;
+      } catch (_) {
+        showProgressError('بازنشانی ناموفق بود. دوباره تلاش کنید.');
+      }
+    });
+  }
+
+  function bindPageButtons() {
+    const bookmarkBtn = $('bookmark-toggle');
+    if (bookmarkBtn && bookmarkBtn.dataset.feBound !== '1') {
+      bookmarkBtn.dataset.feBound = '1';
+      bookmarkBtn.addEventListener('click', async () => {
+        const topicId = Number(bookmarkBtn.dataset.topicId);
+        const isBookmarked = bookmarkBtn.dataset.bookmarked === '1';
+        const status = $('bookmark-status');
+        try {
+          const res = isBookmarked
+            ? await fetch(`/app/bookmarks/${topicId}`, {
+                method: 'DELETE',
+                headers: {
+                  Accept: 'application/json',
+                  'X-CSRF-TOKEN': csrf(),
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+              })
+            : await fetch('/app/bookmarks', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Accept: 'application/json',
+                  'X-CSRF-TOKEN': csrf(),
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ topic_id: topicId }),
+              });
+          if (!res.ok) throw new Error(`bookmark failed: ${res.status}`);
+          const next = !isBookmarked;
+          bookmarkBtn.dataset.bookmarked = next ? '1' : '0';
+          bookmarkBtn.setAttribute('aria-pressed', String(next));
+          bookmarkBtn.textContent = next ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره برای بعد';
+          if (status) status.textContent = '';
+        } catch (_) {
+          if (status) status.textContent = 'ذخیره‌سازی ناموفق بود. دوباره تلاش کنید.';
+        }
+      });
+    }
+
+    const markBtn = $('mark-read');
+    if (markBtn && markBtn.dataset.feBound !== '1') {
+      markBtn.dataset.feBound = '1';
+      markBtn.addEventListener('click', () => {
+        completeLesson();
+      });
+    }
+
+    const resetBtn = $('reset-progress');
+    if (resetBtn) bindResetButton(resetBtn);
+
+    // Guest level preference: keep only the level code (A1–C2), never any
+    // token, receipt, body text, or answer key.
+    document.querySelectorAll('a.fe-level-link').forEach((link) => {
+      if (link.dataset.feLevelBound === '1') return;
+      link.dataset.feLevelBound = '1';
+      link.addEventListener('click', () => {
+        const level = (link.textContent || '').trim().toUpperCase();
+        if (LEVELS.includes(level)) {
+          try {
+            localStorage.setItem('fe-guest-level', level);
+          } catch (_) {}
+        }
+      });
+    });
+
+    // Library filter: for guests with a stored level and no explicit query,
+    // preselect the stored level. Authenticated users rely on preferred_level
+    // server-side; localStorage never overrides an explicit URL.
+    const filterLevel = document.getElementById('filter-level');
+    if (filterLevel && !new URLSearchParams(window.location.search).has('level')) {
+      try {
+        const stored = (localStorage.getItem('fe-guest-level') || '').toUpperCase();
+        if (LEVELS.includes(stored)) {
+          const option = filterLevel.querySelector(`option[value="${stored}"]`);
+          if (option) filterLevel.value = stored;
+        }
+      } catch (_) {}
+    }
+  }
+
+  function syncLesson() {
+    bindPageButtons();
+    const data = lessonData();
+    if (!data) {
+      // Non-reader page (library, saved, account): keep playing.
+      return;
+    }
+    state.authenticated = data.authenticated;
+
+    if (state.lessonId !== null && state.lessonId !== data.lessonId) {
+      // A different lesson or level: stop the current audio first so the
+      // old sound never continues under the new text (S1 rule, kept).
+      try {
+        audio.pause();
+      } catch (_) {}
+    }
+
+    if (state.lessonId !== data.lessonId || state.revision !== data.revision) {
+      state.lessonId = data.lessonId;
+      state.revision = data.revision;
+      state.lastSave = 0;
+      state.pendingSave = null;
+      state.appliedInitialFor = null;
+      clearError();
+      clearProgressError();
+      setMiniPlayer(data.topic, data.level);
+      audio.src = data.audioUrl;
+      try {
+        audio.load();
+      } catch (_) {}
+      // Seek to the saved position once metadata arrives; never autoplay.
+      const initial = Math.max(0, Number(data.initialPosition) || 0);
+      const applyInitial = () => {
+        if (state.appliedInitialFor === `${data.lessonId}:${data.revision}`) return;
+        state.appliedInitialFor = `${data.lessonId}:${data.revision}`;
+        try {
+          audio.currentTime = clampTime(initial);
+        } catch (_) {}
+        refreshSeek();
+      };
+      if (Number.isFinite(audio.duration) && audio.duration > 0) {
+        applyInitial();
+      } else {
+        audio.addEventListener('loadedmetadata', applyInitial, { once: true });
+      }
+      refreshPlayLabel();
+      refreshSeek();
+      return;
+    }
+
+    // Same lesson and revision (e.g., back navigation): keep the time.
+    state.authenticated = data.authenticated;
+    setMiniPlayer(data.topic, data.level);
+  }
+
+  // --- Persisted controls: bound once. ---
+
+  function bindPersisted() {
+    const playBtn = $('player-play');
+    const backBtn = $('player-back');
+    const fwdBtn = $('player-forward');
+    const seek = $('player-seek');
+    const status = $('player-status');
+
+    playBtn?.addEventListener('click', () => {
+      clearError();
+      if (audio.paused) {
+        const p = audio.play();
+        if (p && typeof p.catch === 'function') {
+          p.catch(() => showError('پخش آغاز نشد. اتصال را بررسی کنید و دوباره تلاش کنید.'));
+        }
+      } else {
+        audio.pause();
+      }
+    });
+
+    backBtn?.addEventListener('click', () => {
+      audio.currentTime = clampTime(audio.currentTime - STEP);
+    });
+
+    fwdBtn?.addEventListener('click', () => {
+      audio.currentTime = clampTime(audio.currentTime + STEP);
+    });
+
+    seek?.addEventListener('input', () => {
+      clearError();
+      // A seek-driven jump to the end must never count as completion.
+      state.suppressEndedOnce = true;
+      audio.currentTime = clampTime(Number(seek.value));
+      refreshSeek();
+    });
+
+    document.querySelectorAll('.fe-speed-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const next = Number(btn.dataset.speed);
+        if (!SPEEDS.includes(next)) return;
+        audio.playbackRate = next;
+        document.querySelectorAll('.fe-speed-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+    });
+
+    $('player-retry')?.addEventListener('click', () => {
+      clearError();
+      if (status) status.textContent = 'در حال تلاش دوباره…';
+      audio.load();
+    });
+
+    $('progress-retry')?.addEventListener('click', () => {
+      if (state.pendingSave) {
+        const pos = state.pendingSave.position_seconds;
+        state.pendingSave = null;
+        saveProgress(pos);
+      } else {
+        saveProgress(audio.currentTime);
+      }
+    });
+
+    audio.addEventListener('play', () => {
+      refreshPlayLabel();
+      if (status) status.textContent = '';
+    });
+    audio.addEventListener('pause', () => {
+      refreshPlayLabel();
+      // Save on pause (authenticated only); failures show retryable UI.
+      if (state.authenticated && state.lessonId !== null) {
+        saveProgress(audio.currentTime, { silent: false });
+      }
+    });
+    audio.addEventListener('timeupdate', () => {
+      refreshSeek();
+      maybePeriodicSave();
+    });
+    audio.addEventListener('loadedmetadata', refreshSeek);
+    audio.addEventListener('waiting', () => {
+      if (status) status.textContent = 'در حال بارگذاری صوت…';
+    });
+    audio.addEventListener('playing', () => {
+      if (status) status.textContent = '';
+    });
+    audio.addEventListener('canplay', () => {
+      if (status && status.textContent === 'در حال تلاش دوباره…') status.textContent = '';
+    });
+    audio.addEventListener('error', () => {
+      showError('خطا در دریافت صوت. اتصال را بررسی کنید و دوباره تلاش کنید.');
+    });
+    audio.addEventListener('ended', () => {
+      refreshPlayLabel();
+      refreshSeek();
+      if (state.suppressEndedOnce) {
+        state.suppressEndedOnce = false;
+        return;
+      }
+      if (state.authenticated && state.lessonId !== null) {
+        saveProgress(audio.duration || audio.currentTime, { silent: true }).then(() => completeLesson());
+      }
+    });
+
+    // Best-effort only: never relied upon for durability.
+    const bestEffort = () => {
+      if (!audio.paused && state.authenticated && state.lessonId !== null) {
+        try {
+          fetch('/app/progress', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': csrf(),
+            },
+            body: JSON.stringify({
+              lesson_id: state.lessonId,
+              audio_revision: state.revision,
+              position_seconds: audio.currentTime,
+            }),
+            keepalive: true,
+          }).catch(() => {});
+        } catch (_) {}
+      }
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') bestEffort();
+    });
+    window.addEventListener('pagehide', bestEffort);
+
+    // Logout and admin leave the learner layout via full navigation: stop
+    // the audio and clear its source first so nothing lingers in bfcache.
+    document.addEventListener('submit', (event) => {
+      const form = event.target;
+      if (form instanceof HTMLFormElement && form.hasAttribute('data-fe-logout')) {
+        stopAndClear();
+      } else if (form instanceof HTMLFormElement && /\/logout\b/.test(form.action)) {
+        stopAndClear();
+      }
+    });
+    document.addEventListener('click', (event) => {
+      const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!anchor) return;
+      const href = anchor.getAttribute('href') || '';
+      if (href.startsWith('/admin') || href === '/logout') {
+        stopAndClear();
+      }
+    });
+
+    document.addEventListener('livewire:navigated', () => {
+      syncLesson();
+    });
+
+    refreshPlayLabel();
+    refreshSeek();
+  }
+
+  bindPersisted();
+  syncLesson();
+})();

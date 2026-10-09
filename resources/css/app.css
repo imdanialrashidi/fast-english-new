@@ -1,0 +1,671 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/*
+ * Fast English learner tokens (S1). Semantic source of truth for the
+ * learner surface; values are the scope §17.1 PROPOSALS (see docs/DESIGN.md
+ * for mapping, status, and measured contrast). Persian: self-hosted
+ * Vazirmatn variable (public/fonts/vazirmatn, OFL beside the files).
+ * English: system stack.
+ */
+@font-face {
+    font-family: 'Vazirmatn';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/vazirmatn/vazirmatn-arabic-variable.woff2') format('woff2');
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFC;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/vazirmatn/vazirmatn-latin-variable.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+2000-206F;
+}
+
+:root {
+    --fe-canvas: #f8fafc;
+    --fe-surface: #ffffff;
+    --fe-text: #0f172a;
+    --fe-muted-text: #475569;
+    --fe-border: #e2e8f0;
+    --fe-primary: #1d4ed8;
+    --fe-primary-hover: #1e40af;
+    --fe-on-primary: #ffffff;
+    --fe-success: #15803d;
+    --fe-danger: #b91c1c;
+    --fe-font-fa: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    --fe-font-en: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.fe-learner {
+    background: var(--fe-canvas);
+    color: var(--fe-text);
+    font-family: var(--fe-font-fa);
+    min-height: 100dvh;
+}
+
+.fe-measure {
+    max-width: 680px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+}
+
+.fe-surface {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.75rem;
+}
+
+.fe-muted {
+    color: var(--fe-muted-text);
+}
+
+.fe-english-body {
+    font-family: var(--fe-font-en);
+    font-size: 18px;
+    line-height: 1.75;
+    color: var(--fe-text);
+}
+
+.fe-english-body p {
+    margin-block: 0 1em;
+}
+
+/* Touch targets: at least 44x44 CSS px for every player/level control. */
+.fe-btn,
+.fe-level-link,
+.fe-speed-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    font-family: var(--fe-font-fa);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.625rem;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.fe-btn-primary,
+.fe-level-link[aria-current='page'],
+.fe-speed-btn[aria-pressed='true'] {
+    background: var(--fe-primary);
+    border-color: var(--fe-primary);
+    color: var(--fe-on-primary);
+}
+
+.fe-level-link:not([aria-current='page']):hover,
+.fe-btn:not(.fe-btn-primary):hover,
+.fe-speed-btn:not([aria-pressed='true']):hover {
+    background: var(--fe-canvas);
+}
+
+.fe-btn:focus-visible,
+.fe-level-link:focus-visible,
+.fe-speed-btn:focus-visible,
+.fe-seek:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-seek {
+    width: 100%;
+    min-height: 44px;
+    accent-color: var(--fe-primary);
+}
+
+/* Seek times stay on the same row as the slider on narrow screens. */
+.fe-seek-row {
+    flex-wrap: nowrap;
+}
+
+.fe-seek-row .fe-seek {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.fe-playerbar {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 20;
+    background: var(--fe-surface);
+    border-top: 1px solid var(--fe-border);
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
+}
+
+.fe-playerbar-inner {
+    max-width: 680px;
+    margin-inline: auto;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.fe-player-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.fe-time {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+    min-width: 3ch;
+}
+
+/* End-of-content clearance for the fixed player bar: the S4 bar carries a
+   mini-player line above the transport buttons, so the narrow-screen
+   height grows to ~300px (223px+ from 390px up in the normal state).
+   22rem clears every viewport without covering text. */
+.fe-main-pad {
+    padding-bottom: 22rem;
+}
+
+/* S4 learner top navigation: three destinations, each a 44px target. */
+.fe-topnav {
+    background: var(--fe-surface);
+    border-bottom: 1px solid var(--fe-border);
+}
+
+.fe-topnav nav {
+    max-width: 680px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.fe-nav-link {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    color: var(--fe-text);
+    text-decoration: none;
+}
+
+.fe-nav-link:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+/* S4 reader actions: bookmark + read/reset sit above the body. */
+.fe-reader-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-block: 0.75rem;
+}
+
+/* S7 placement options: each answer label is a 44px touch target reusing
+   learner tokens only (no new colors). The radio itself stays visible;
+   the label carries the target size for narrow viewports. */
+.fe-option {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--fe-border);
+    border-radius: 0.625rem;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.fe-option input[type='radio'] {
+    width: 24px;
+    height: 24px;
+    accent-color: var(--fe-primary);
+    flex-shrink: 0;
+}
+
+.fe-option:focus-within {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+#mini-player {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.fe-skip {
+    position: absolute;
+    inset-inline-start: 0.5rem;
+    top: -4rem;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.625rem;
+    padding: 0.5rem 1rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    z-index: 50;
+}
+
+.fe-skip:focus {
+    top: 0.5rem;
+}
+
+.fe-alert {
+    border: 1px solid var(--fe-danger);
+    color: var(--fe-danger);
+    background: var(--fe-surface);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1rem;
+}
+
+/* S2 PWA update notice: brief banner with a user-triggered refresh. The
+   new service worker never reloads on its own (see resources/js/pwa.js). */
+#pwa-update {
+    position: fixed;
+    inset-inline: 1rem;
+    bottom: 1rem;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--fe-text);
+    color: var(--fe-on-primary);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+#pwa-refresh {
+    min-height: 44px;
+    min-width: 44px;
+    background: var(--fe-on-primary);
+    color: var(--fe-primary);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* S3 library (scope §17.2): one card per topic. No new colors — every
+   text pair reuses the measured tokens (text/muted on surface/canvas,
+   on-primary on primary). Cover keeps a fixed 16/9 aspect ratio. */
+.fe-library {
+    display: grid;
+    gap: 1rem;
+}
+
+.fe-filters {
+    display: grid;
+    gap: 0.75rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+.fe-field {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.fe-field > label {
+    font-size: 1rem;
+    color: var(--fe-text);
+}
+
+.fe-field select,
+.fe-field input[type='search'],
+.fe-field input[type='text'],
+.fe-field input[type='email'],
+.fe-field input[type='password'],
+.fe-field input[type='file'],
+.fe-field input[type='datetime-local'] {
+    min-height: 44px;
+    font-size: 1rem;
+    font-family: var(--fe-font-fa);
+    color: var(--fe-text);
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+}
+
+.fe-field select:focus-visible,
+.fe-field input[type='search']:focus-visible,
+.fe-field input[type='text']:focus-visible,
+.fe-field input[type='email']:focus-visible,
+.fe-field input[type='password']:focus-visible,
+.fe-field input[type='file']:focus-visible,
+.fe-field input[type='datetime-local']:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-field-actions {
+    display: flex;
+    align-items: end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.fe-cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+}
+
+.fe-card {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.fe-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    min-height: 44px;
+}
+
+.fe-card-link:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-card-cover {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: var(--fe-canvas);
+}
+
+/* S4 pre-slice: one fixed aspect-ratio container for every card. The
+   wrapper owns the 16/9 ratio (16/9 = 1.777...); the inner img or
+   placeholder fills it. Measuring the wrapper is exact across widths:
+   the earlier 1.68-1.88 range in S3-7 was the tolerance around 1.777
+   for subpixel rounding and border-box measurement at 320-390 px. */
+.fe-card-media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--fe-canvas);
+}
+
+.fe-card-cover-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--fe-muted-text);
+}
+
+.fe-card-body {
+    padding: 0.75rem 1rem 1rem;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.fe-card-title {
+    font-family: var(--fe-font-en);
+    font-size: 1.125rem;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--fe-text);
+}
+
+.fe-card-levels {
+    margin: 0;
+    color: var(--fe-text);
+}
+
+.fe-empty {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+}
+
+.fe-pagination nav,
+.fe-pagination > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.fe-pagination a,
+.fe-pagination span {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--fe-border);
+    border-radius: 0.625rem;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.fe-pagination span[aria-current='page'] {
+    background: var(--fe-primary);
+    border-color: var(--fe-primary);
+    color: var(--fe-on-primary);
+}
+
+/* S3 reader additions: bounded cover + active-lesson glossary. */
+.fe-cover {
+    display: block;
+    width: 100%;
+    max-height: 15rem;
+    object-fit: cover;
+    border: 1px solid var(--fe-border);
+    border-radius: 0.75rem;
+}
+
+.fe-glossary {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+}
+
+.fe-glossary-row {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.625rem;
+    padding: 0.75rem 1rem;
+    display: grid;
+    gap: 0.125rem;
+}
+
+.fe-glossary-row dt {
+    font-family: var(--fe-font-en);
+    font-weight: 700;
+    color: var(--fe-text);
+}
+
+.fe-glossary-row dd {
+    margin: 0;
+    color: var(--fe-text);
+}
+
+@media (min-width: 640px) {
+    .fe-filters {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .fe-field-search {
+        grid-column: 1 / -1;
+    }
+
+    .fe-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .fe-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* S8 public pages (scope §6, §19): landing + trust + download reuse
+   learner tokens only — no new colors (guarded by S3DesignTest). */
+.fe-public {
+    display: grid;
+    gap: 1.5rem;
+    padding-block: 1.5rem 3rem;
+}
+
+.fe-hero {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.fe-hero h1 {
+    font-size: 1.5rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.fe-draft-badge {
+    display: inline-block;
+    border: 1px dashed var(--fe-primary);
+    color: var(--fe-primary);
+    background: var(--fe-surface);
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.fe-blocked {
+    border: 1px solid var(--fe-danger);
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.fe-blocked p {
+    margin: 0;
+}
+
+.fe-steps {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding-inline-start: 1.25rem;
+}
+
+.fe-prose {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.fe-prose h2 {
+    font-size: 1.125rem;
+    margin: 0.5rem 0 0;
+}
+
+.fe-prose p {
+    margin: 0;
+}
+
+.fe-meta-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.fe-meta-table th,
+.fe-meta-table td {
+    border-top: 1px solid var(--fe-border);
+    padding: 0.75rem 1rem;
+    text-align: start;
+    font-size: 1rem;
+}
+
+.fe-meta-table tr:first-child th,
+.fe-meta-table tr:first-child td {
+    border-top: none;
+}
+
+.fe-footer {
+    border-top: 1px solid var(--fe-border);
+    background: var(--fe-surface);
+    padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
+}
+
+.fe-footer nav {
+    max-width: 680px;
+    margin-inline: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+}
+
+.fe-footer a {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    color: var(--fe-text);
+    text-decoration: none;
+}
+
+.fe-footer a:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fe-learner *,
+    .fe-learner *::before,
+    .fe-learner *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+}

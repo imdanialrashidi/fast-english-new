@@ -1,164 +1,61 @@
-# Quality Contract
+# Fast English — Quality Contract
 
-This file defines the evaluator-facing quality bar for meaningful changes. Keep it project-specific after `/bootstrap`; do not turn it into a generic checklist dump.
+Source: scope §20 (verification method), §23 (AC-01…AC-23), §17.4 (accessibility), §18 (devices), §11/14 (concurrency), §16 (media/security). AC wording is the scope's contract, not a current PASS claim.
 
 ## Release rule
 
-A change is not complete because the code compiles or the happy-path test passes. Every accepted behavior must be implemented rather than stubbed, exercised at the appropriate layer, and supported by evidence.
+A required criterion that is unproven is **not passed**. Only these statuses are used: **PASS**, **FAIL**, **UNPROVEN**, **BLOCKED**. A green command, an unseen screenshot, or a reviewer opinion alone is never acceptance proof. Placeholder buttons, stub handlers, fake persistence, TODO implementations, display-only controls, and hard-coded success never satisfy a criterion.
 
-A required criterion that is unproven is **not passed**.
+Evidence hierarchy (cheapest faithful first): deterministic Pest test on real PostgreSQL → real browser/API/DB exercise (Playwright) → type/lint/structural check (Pint, config) → reproducible measurement → real-device/staging proof where the risk demands it. Mocks never replace the authorization/transaction/storage boundary they claim to prove (§20.1). Tests run on an isolated DB, never developer/production data; time is controlled in expiry tests (§20.1).
 
-## Functional completeness
+## Project-specific invariants (binding)
 
-For accepted scope:
+- Level is content, not permission; missing level never silently substitutes (§8).
+- Money is integer toman; durations are exact days; timestamps UTC stored, Asia/Tehran displayed (§8).
+- One open payment request per user; pending grants nothing; replay/race creates exactly one effect (§10–11).
+- Private audio/receipts never enter public HTML, Livewire payloads, CDN/SW caches, or logs (§8, §16, §18).
+- Range delivery re-proven whenever the file path changes (§16). Financial Filament resources are not built before S5/S6 (§21).
+- Real-device, real-SMTP, and commercial-data criteria stay UNPROVEN/BLOCKED until the real prerequisite exists — never marked passed on substitutes.
 
-- controls that imply behavior must actually perform that behavior;
-- persistence must survive the lifecycle promised by the product;
-- displayed state must come from the authoritative source rather than a convenient fake;
-- required error, empty, loading, disabled, success, permission, retry, and recovery states must behave coherently;
-- no accepted feature may be satisfied by a placeholder, TODO handler, mock response, display-only control, or hard-coded success path unless the contract explicitly says it is a prototype.
+## Acceptance → proof map (scope §23)
 
-## Correctness
+| AC | Needs | Expected result | Cheapest faithful proof | Real-prerequisite gate |
+|---|---|---|---|---|
+| AC-01 | PUB-01, READ-01 | Visitor uses a real sample without account; drafts/premium never leak | Playwright public journey + response/HTML assertion that premium body/audio absent | PASS only with real seeded sample; else UNPROVEN |
+| AC-02 | AUTH-01/02 | Register, wrong/right login, logout, session refresh, reset via real email; no cross-actor mutation | Pest auth + negative-path tests; reset requires **real SMTP** send/receive | Without real SMTP: BLOCKED (reset leg) |
+| AC-03 | LIB-01/02 | One result per topic, pagination, query/level in URL, missing-version message | Pest list/search/filter + Playwright URL/back-forward check + rendered list image | — |
+| AC-04 | READ-01/02 | Level select shows that lesson's text/audio/glossary; no silent preference/recommendation change | Pest lesson isolation + Playwright level-switch journey + DB assertion on `preferred_level` unchanged | — |
+| AC-05 | MEDIA-01 | Play, pause, seek, speeds, valid/invalid Range on real MP3 | Real MP3 over HTTP: `206`/`Content-Range`, `416` out-of-range + Playwright player controls | Needs real MP3 fixture at S1 |
+| AC-06 | MEDIA-02 | In-layout nav preserves playback; different version/logout stops old audio; no duplicate listeners | Playwright navigation/logout journey + listener-count assertion | — |
+| AC-07 | PROG-01 | Last confirmed save returns after refresh; no cross user/lesson/revision mixing; save failure never fakes success | Pest progress isolation/revision tests + Playwright refresh/resume journey | — |
+| AC-08 | SAVE-01 | Unique, durable, removable bookmark; archived content has defined behavior | Pest unique-pair/toggle + archived-topic journey | — |
+| AC-09 | LEVEL-01, PLACE-01 | Skippable placement; 20 questions, no answer key to client; resume; repeat submit one result; preference only on explicit action | Pest server-marking + hydration/absence-of-key assertion + Playwright resume journey | Real teacher-approved questions required before public exam, else exam leg BLOCKED |
+| AC-10 | PAY-01 | Server snapshot before transfer; later plan edits don't mutate snapshot; injected amount/status rejected | Pest snapshot-immutability + tamper-rejection tests | Real prices/destination needed for sale; fixtures otherwise |
+| AC-11 | PAY-01/02 | Invalid upload rejected; others' receipts + public paths denied; retry/concurrent double-create yields ≤1 open request | Pest upload validation + ownership/policy tests + PostgreSQL concurrent double-create test | Real PostgreSQL required |
+| AC-12 | PAY-03 | Authorized staff approves pending once; retry/concurrent double-approve yields one event + one extension | **PostgreSQL concurrency test**: two concurrent approves → one `subscription_events` row, one expiry extension; idempotent replay test | Real PostgreSQL required |
+| AC-13 | PAY-03, SUB-01 | Concurrent approve + manual grant: no lost update; approve/reject race: single final outcome; self-approval rejected | **PostgreSQL race tests** (approve×approve, approve×grant, approve×reject) under fixed lock order User→Request→Subscription + self-approval negative test | Real PostgreSQL required |
+| AC-14 | PAY-02/03 | Reject carries reason, no new effect; resubmit creates a new request; prior valid subscription preserved | Pest reject/resubmit/prior-window tests | — |
+| AC-15 | SUB-01 | No-subscription/expired/revoked/disabled denied at page + audio route; all published levels allowed to eligible | Pest policy tests across states × (page, audio route, Livewire action) + server-clock expiry test | — |
+| AC-16 | SUB-01 | Active renewal extends from expiry; post-expiry purchase from approve time; old replay never revives revoked; manual edits audited | Pest window-math + replay-after-revoke + event-audit tests with controlled clock | — |
+| AC-17 | ADM-01/02 | Students denied staff actions; drafts invisible in URL/file/search; staff can publish valid lesson + control plans/destination | Pest policy + draft-invisibility (list/search/URL/media) tests; Filament action test behind `canAccessPanel` + policy | — |
+| AC-18 | QA-01 | Mobile, RTL/LTR, keyboard/focus, zoom, contrast, error states with rendered evidence | Playwright journeys (list/reader/payment) at 360–430 + keyboard/zoom pass + measured contrast pairs + inspected rendered images | Rendered inspection required; otherwise UNPROVEN |
+| AC-19 | MOB-01 | PWA installs/runs on **real iPhone**; no private SW cache; logout/back with second account leaks nothing | Real iPhone Safari PWA install + logout/two-account bfcache test + SW cache audit | Without real iPhone: UNPROVEN |
+| AC-20 | MOB-02 | Release APK installs on **real Android**; asset-links cert match; login/audio/download metadata correct | Real Android + release-signed APK + assetlinks verification + version metadata check | Without real Android/release signing: BLOCKED |
+| AC-21 | OPS-01 | HTTPS + secure config, debug off, private storage unreachable directly, secret-free logs, health/monitoring live | Staging config audit + private-path 404 probe + log inspection + healthcheck exercise | Needs staging/hosting; else BLOCKED |
+| AC-22 | OPS-01 | Sound DB+file backup; restore in an isolated env proves login/audio/receipt + retention cleanup | Real restore drill in empty env with record/audio/receipt counts + retention run | Needs backup destination; else BLOCKED |
+| AC-23 | PUB-02, QA-01 | Real copy/contact/prices, approved terms/privacy, domain/signing ownership, complete handover; no commercial placeholders in public sale | Document + domain/signing inventory review; public-surface placeholder scan | Without real commercial inputs: BLOCKED for sale |
 
-- Preserve domain invariants across success and failure paths.
-- Validate external/untrusted data at boundaries.
-- Handle retries, duplicate requests, time, rounding, ordering, partial failure, and concurrency where they are material to the changed behavior.
-- A production bug should gain regression evidence when practical.
-- Tests should assert behavior and contracts rather than implementation trivia.
-- A new regression test should demonstrably fail on pre-fix behavior (or a safe focused mutation/equivalent independent characterization) when practical, then pass after the fix.
-- Generated tests must build, pass reliably, add a distinct behavioral signal, and isolate relevant state; line coverage alone is not acceptance evidence.
+## Concurrency, privacy, expiry, device notes
 
-### Test Value Gate
+- Concurrency (AC-11/12/13): PostgreSQL-only proof; SQLite or mocked transactions are not faithful. Fixed lock order User → PaymentRequest → Subscription is asserted by the race tests.
+- Receipts (AC-11): private-disk storage, owner/staff-policy delivery, `private, no-store`, no public URL, no receipt/bank data in logs/analytics.
+- Expiry (AC-15/16): server UTC clock controlled in tests; active renewal vs post-expiry base verified; revoked windows never revived by replay.
+- Devices (AC-19/20): pilot matrix minimum — one real Android with release APK, one Android browser/PWA, one iPhone Safari/PWA, each with device/OS/browser/build recorded (§18.2). Missing device → UNPROVEN, never passed.
 
-A new or materially changed test is retained only when it identifies:
+## Visual excellence
 
-1. an observable contract or invariant;
-2. a plausible failure it can detect;
-3. a gap not already covered by an existing test, type, schema, or deterministic check;
-4. the cheapest faithful layer;
-5. an oracle independent from the implementation under test; and
-6. red-before-green, a controlled focused mutation, or equivalent defect-sensitivity evidence when practical.
+For new learner surfaces (list, reader, account), load `frontend-design` and judge rendered evidence against DESIGN.md thesis plus its visual-quality rubric. Ordinary production craft threshold is 2.75/4 with no dimension below 2; an explicitly flagship surface requires 3.25/4 with every dimension at least 3. Hard-gate failures (contrast, focus, touch, RTL/LTR, reduced motion) cannot be offset by aesthetic scoring.
 
-Extend an existing case only to close a distinct evidence gap; otherwise add no test. `No new test` is an acceptable professional outcome for behavior-neutral changes or behavior already proved by the suite. Coverage, assertion count, and test count are diagnostic signals—not acceptance goals.
+## Entry gates per slice (proposed commands resolved by checkout)
 
-A test must justify what could break, why existing evidence misses it, and how it would detect that failure. Keep this explanation proportional; do not create a separate test-plan document for a small edit. Never substitute mocked unit tests for a real integration risk, or use prose/source-text matching as proof that an agent follows instructions. Preserve explicit machine-format and architecture checks where those are the contract.
-
-Select one representative per equivalence class and exact material boundaries. Use decision tables, pairwise cases, or properties for meaningful interactions instead of Cartesian enumeration. Prefer the lowest-cost layer that preserves the real contract; use full end-to-end tests only for failures lower layers cannot represent.
-
-Do not compute expected values with the implementation's own logic, mock the subject/authority, verify private calls unless contractual, test framework or third-party behavior, use broad incidental snapshots, blind-update snapshots, sleep/retry away nondeterminism, or duplicate cases that add no distinct behavioral signal. Mocks are reserved for owned boundaries that are expensive, nondeterministic, or unsafe. Browser tests use user-visible behavior and accessible roles/labels, keep independent state, and exercise only the journey that requires a browser.
-
-## Security and data integrity
-
-For trust-boundary changes, apply the focused risk review below.
-
-At minimum:
-
-- authorization and ownership are enforced server-side;
-- client-provided roles, prices, payment/subscription states, ownership, and permissions are never authoritative;
-- secrets and sensitive data do not enter source, logs, screenshots, fixtures, prompts, or public artifacts;
-- money/callback/state-transition operations are verified, idempotent, replay-aware, and auditable where applicable;
-- schema/data changes have compatibility, rollback/recovery, and failure-path reasoning.
-
-### Focused risk review
-
-Review only the accepted scope and actual diff. Trace changed trust boundaries, input-to-sink data flows, state transitions, public contracts, dependencies, and operational behavior; check the actual controls and tests before reporting a finding.
-
-Check only relevant failure paths: authorization/tenant isolation, injection and unsafe files/URLs, credential/session handling, payment/replay/idempotency, races and partial writes, timeout/cancellation/recovery, unbounded work, inaccessible/error states, dependency/CI mismatch, and migration rollback. The correctness, security, UX, and reliability sections define the underlying contracts.
-
-For each evidence-backed finding give severity, `file:line` or symbol, a concrete failure/attack scenario, why the current control is insufficient, the smallest safe fix, and a proof test. Prefer a few actionable findings over speculative checklist output.
-
-- **BLOCKER:** exploitable security, data loss/corruption, money/access violation, migration/deployment breakage, or a broken critical flow.
-- **MAJOR:** likely user-visible correctness/reliability failure or substantial security/performance regression.
-- **MINOR:** bounded defect or maintenance risk.
-- **NIT:** optional clarity/style improvement; never a release blocker.
-
-Return the acceptance evidence and one verdict: `PASS`, `PASS WITH FIXES`, or `BLOCK`. `PASS` requires proven required criteria and no unresolved BLOCKER/MAJOR. Use `/review` for the complete review procedure.
-
-## User-facing quality
-
-For rendered interfaces:
-
-- exercise the critical journey in the real browser when browser behavior matters;
-- preserve keyboard access, visible focus, semantic controls, labels, contrast, touch targets, and reduced-motion behavior;
-- check realistic data, long text, localization/RTL when relevant, and at least one narrow viewport for mobile-facing surfaces;
-- follow the accepted `docs/DESIGN.md`; use existing design tokens/components when they remain sound and change them deliberately when the accepted direction requires it;
-- do not add explanatory copy that merely restates obvious UI;
-- visual polish cannot compensate for missing interaction depth or broken behavior.
-
-Default accessibility baseline when the product has not chosen a stricter target:
-
-- WCAG 2.2 AA;
-- text contrast at least 4.5:1, or 3:1 for qualifying large text;
-- non-text UI/state contrast at least 3:1 where WCAG requires it;
-- reflow without loss of information/functionality at 320 CSS px where the content is not inherently two-dimensional;
-- usable at 200% text zoom, with clear visible focus and meaning that does not depend on color alone.
-
-### Visual excellence
-
-For a new interface, redesign, launch surface, or explicitly high-aesthetic task, load `frontend-design` and evaluate the rendered result using its visual-quality rubric.
-
-Require:
-
-- a product-specific visual thesis and one restrained signature element;
-- typography, palette, composition, geometry, media, and motion derived from the product/audience rather than interchangeable defaults;
-- semantic tokens and coherent components without turning every section into the same card;
-- mobile recomposition rather than simple shrinkage;
-- real content and deliberately designed loading, empty, error, success, focus, selected, disabled, and permission states as relevant;
-- one product/interaction browser pass and one independent studio/aesthetic pass;
-- named desktop, mobile, and demanding-state evidence when the application can run.
-
-Hard-gate failures cannot be offset by aesthetic scoring. The ordinary production craft threshold is 2.75/4 with no dimension below 2; an explicitly flagship surface requires 3.25/4 with every dimension at least 3. Any criterion that depends on rendered evidence is `UNPROVEN` when only code was inspected.
-
-## Reliability and performance
-
-Apply only where relevant to the changed path:
-
-- avoid unbounded reads/work, N+1 access, duplicate calls, uncontrolled concurrency, and blocking hot paths;
-- use explicit timeouts/cancellation/retries where the boundary requires them;
-- preserve meaningful non-sensitive logs or diagnostics for critical transitions;
-- performance claims require a reproducible baseline and after-measurement;
-- a flaky test or intermittent runtime path is a reliability defect, not automatic permission to weaken the gate.
-
-For production web surfaces without accepted product-specific field budgets, use current Core Web Vitals `good` thresholds as targets at the 75th percentile, segmented by mobile and desktop: LCP ≤ 2.5 s, INP ≤ 200 ms, and CLS ≤ 0.1. Before field data exists, require an accepted repeatable lab budget, RUM instrumentation, and a staged-rollout check. Lab results are pre-production signals; do not present them as field/RUM proof.
-
-## Maintainability and architecture
-
-- Prefer existing project patterns and stable framework/platform primitives.
-- Keep public interfaces small and backward-compatible unless a breaking change is accepted.
-- Keep business rules separable from presentation/transport when the existing architecture supports it.
-- New abstractions should solve more than one real current use case or remove a demonstrated risk/duplication.
-- New dependencies require a concrete benefit over existing/platform capabilities.
-- Architecture invariants that matter repeatedly should be enforced mechanically with types, lint rules, structural tests, schemas, or CI rather than prose alone.
-
-## Evidence hierarchy
-
-Prefer stronger evidence when practical:
-
-1. deterministic automated test of the accepted behavior;
-2. real browser/API/database exercise of the relevant journey;
-3. type/lint/structural/static analysis for invariant classes;
-4. reproducible measurement for performance/reliability claims;
-5. focused independent-evaluator inspection for aspects that cannot be automated economically.
-
-A reviewer or subagent opinion alone is not proof.
-
-## Evaluator rubric
-
-An evaluator should assess the accepted contract, not invent adjacent scope.
-
-For each acceptance criterion return one of:
-
-- **PASS** — implementation and evidence satisfy the criterion;
-- **FAIL** — evidence demonstrates incorrect/incomplete behavior;
-- **UNPROVEN** — implementation may exist but adequate evidence is missing;
-- **BLOCKED** — a genuine prerequisite prevents verification.
-
-Then inspect cross-cutting regression risk only where the diff makes it relevant.
-
-The overall task cannot be called complete while a required criterion is `FAIL` or `UNPROVEN`, or while a required independent review has an unresolved BLOCKER/MAJOR finding.
-
-## Project-specific quality invariants
-
-`/bootstrap` should replace this paragraph with a concise set of confirmed project-specific rules and canonical commands where the repository provides enough evidence. Examples might include an architectural dependency direction, exact accessibility target, API compatibility guarantee, performance budget, supported browser/device matrix, or canonical release gate.
-
-Do not invent quality targets that the product or repository has not accepted.
+Pint check, slice-scoped Pest suite on PostgreSQL, Vite asset build where UI changes, related Playwright journeys where browser/device risk exists. Canonical commands come from this checkout and QUALITY policy, not from assumed script names; no hypothetical command is invented to resemble the scope.
