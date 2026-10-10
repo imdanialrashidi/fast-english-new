@@ -28,6 +28,10 @@ use Illuminate\Support\Facades\Route;
 // download links, and the FAQ link.
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 
+// Public sample entry (scope §6, PUB-01/AC-01): the real published sample
+// without login. Drafts/premium never resolve here; 404 when none exists.
+Route::get('/sample', [LandingController::class, 'sample'])->name('sample');
+
 // S8 trust pages (scope §6, PUB-02): draft copy labelled as draft;
 // support/terms/privacy show explicit BLOCKED states (scope §25).
 Route::get('/about', [TrustController::class, 'about'])->name('trust.about');

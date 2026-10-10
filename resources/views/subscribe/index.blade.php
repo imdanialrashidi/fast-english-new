@@ -4,20 +4,24 @@
 
 @section('content')
 <div class="fe-measure fe-library">
-    <h1>انتخاب پلن</h1>
-    <p class="fe-muted">پلن موردنظر را انتخاب کنید. مبلغ و مشخصات واریز از سمت سرور ثبت می‌شود.</p>
+    <div class="fe-library-head">
+        <h1>انتخاب پلن</h1>
+        <p class="fe-muted">پلن موردنظر را انتخاب کنید. مبلغ و مشخصات واریز از سمت سرور ثبت می‌شود.</p>
+    </div>
 
     @if (session('status'))
         <p class="fe-muted" role="status">{{ session('status') }}</p>
     @endif
 
     @if (! $salesOn)
-        <div class="fe-empty">
+        <div class="fe-empty" role="status">
+            <span class="fe-empty-icon"><x-fe-icon name="card" size="24" /></span>
             <p><strong>در دست آماده‌سازی</strong></p>
             <p class="fe-muted">فروش هنوز فعال نشده است. پلن‌ها پس از اعلام رسمی قابل خرید خواهند بود.</p>
         </div>
     @elseif ($plans->isEmpty())
-        <div class="fe-empty">
+        <div class="fe-empty" role="status">
+            <span class="fe-empty-icon"><x-fe-icon name="inbox" size="24" /></span>
             <p>در حال حاضر پلن فعالی وجود ندارد. لطفاً بعداً مراجعه کنید.</p>
         </div>
     @else
@@ -31,7 +35,7 @@
                         <form method="POST" action="{{ route('payments.store') }}" lang="fa" dir="rtl">
                             @csrf
                             <input type="hidden" name="plan_id" value="{{ $plan->id }}">
-                            <button class="fe-btn fe-btn-primary" type="submit">انتخاب این پلن</button>
+                            <button class="fe-btn fe-btn-primary" type="submit"><x-fe-icon name="check" size="20" />انتخاب این پلن</button>
                         </form>
                     </div>
                 </li>
@@ -41,7 +45,7 @@
 
     @if ($errors->any())
         <div class="fe-empty">
-            <p class="fe-alert" role="alert">انتخاب پلن نامعتبر بود. لطفاً دوباره تلاش کنید.</p>
+            <p class="fe-alert" role="alert"><x-fe-icon name="circle-alert" size="20" />انتخاب پلن نامعتبر بود. لطفاً دوباره تلاش کنید.</p>
         </div>
     @endif
 </div>

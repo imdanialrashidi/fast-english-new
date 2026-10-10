@@ -13,7 +13,7 @@
 
     @if ($errors->any())
         <div class="fe-empty">
-            <p class="fe-alert" role="alert">{{ $errors->first() }}</p>
+            <p class="fe-alert" role="alert"><x-fe-icon name="circle-alert" size="20" />{{ $errors->first() }}</p>
         </div>
     @endif
 
@@ -34,7 +34,7 @@
                         @endforeach
                     </div>
                     <div class="fe-field fe-field-actions">
-                        <button class="fe-btn" type="submit">ذخیره پاسخ سؤال {{ $question->position }}</button>
+                        <button class="fe-btn" type="submit"><x-fe-icon name="check" size="20" />ذخیره پاسخ سؤال {{ $question->position }}</button>
                     </div>
                 </form>
             </div>
@@ -42,10 +42,11 @@
     @endforeach
 
     <div class="fe-empty">
+        <span class="fe-empty-icon"><x-fe-icon name="graduation" size="24" /></span>
         <p>پس از ذخیره همه پاسخ‌ها، نتیجه را ثبت کنید. پاسخ ناقص نتیجه‌ای ندارد.</p>
         <form method="POST" action="{{ route('placement.submit', $attempt) }}" lang="fa" dir="rtl">
             @csrf
-            <button class="fe-btn fe-btn-primary" type="submit">ثبت نهایی پاسخ‌ها</button>
+            <button class="fe-btn fe-btn-primary" type="submit"><x-fe-icon name="check" size="20" />ثبت نهایی پاسخ‌ها</button>
         </form>
     </div>
 </div>

@@ -7,10 +7,9 @@ use Illuminate\Support\Facades\File;
 /**
  * S2 early-mobile proof: PWA shell routes + TWA asset links (scope §18).
  *
- * - /manifest.webmanifest: working name Fast English (labelled), fa/RTL,
- *   standalone, start_url /app, scope /, standard + maskable icons.
- *   Icons are LOCAL PLACEHOLDERS (generated, no third-party imagery);
- *   final brand art needs owner approval.
+ * - /manifest.webmanifest: Fast English (fa/RTL, standalone,
+ *   start_url /app, scope /). Icons are the owner-supplied app mark
+ *   (Logo/fast_english_app_favicon.png) rendered at 192/512/maskable/180.
  * - /sw.js: allowlist-only service worker. Precaches fingerprinted public
  *   assets, icons, the self-hosted Vazirmatn font, and the public offline
  *   page. Everything else — HTML navigations, auth, Livewire, admin,
@@ -32,14 +31,14 @@ class PwaController extends Controller
         return response()->json([
             'name' => 'Fast English',
             'short_name' => 'Fast English',
-            'description' => 'Fast English — working name; local placeholder icons. Final brand pending owner approval.',
+            'description' => 'Fast English — خواندن و شنیدن متن‌های کوتاه انگلیسی در سطح مناسب',
             'lang' => 'fa',
             'dir' => 'rtl',
             'display' => 'standalone',
             'start_url' => '/app',
             'scope' => '/',
-            'background_color' => '#F7F5EF',
-            'theme_color' => '#F7F5EF',
+            'background_color' => '#f7f5ef',
+            'theme_color' => '#f7f5ef',
             'icons' => [
                 ['src' => '/icons/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
                 ['src' => '/icons/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],

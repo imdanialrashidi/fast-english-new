@@ -74,13 +74,21 @@ final class DailyPlan
 
         if ($continueLesson !== null) {
             $done = $continueProgress->completed_at !== null;
-            $tasks[] = [
+            $continueMeta = [
+                'title_en' => (string) $continueLesson->title_en,
+                'level' => (string) $continueLesson->level,
+                'cover_path' => $continueLesson->topic->cover_path,
+                'position_seconds' => (float) ($continueProgress->position_seconds ?? 0),
+                'duration_seconds' => (int) ($continueLesson->duration_seconds ?? 0),
+                'estimated_minutes' => (int) ($continueLesson->estimated_minutes ?? 0),
+            ];
+            $tasks[] = array_merge([
                 'key' => 'continue',
                 'title' => 'ادامه مطالعه',
                 'detail' => $continueLesson->title_en.' ('.$continueLesson->level.')',
                 'url' => route('reader.show', ['topic' => $continueLesson->topic->slug, 'level' => $continueLesson->level]),
                 'done' => $done,
-            ];
+            ], $continueMeta);
             $tasks[] = [
                 'key' => 'listen',
                 'title' => 'گوش دادن به صوت درس',

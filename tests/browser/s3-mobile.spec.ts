@@ -27,13 +27,21 @@ test('S3-7 library at 360px: no scroll, kept aspect ratio, reachable controls', 
   expect(box!.width / box!.height).toBeGreaterThan(1.68);
   expect(box!.width / box!.height).toBeLessThan(1.88);
 
-  for (const label of ['سطح', 'دسته', 'جست‌وجو در عنوان']) {
-    const target = page.getByLabel(label);
-    const size = await target.boundingBox();
-    expect(size).not.toBeNull();
-    expect(size!.height).toBeGreaterThanOrEqual(44);
+  for (const group of ['سطح', 'دسته']) {
+    const target = page.getByRole('group', { name: group });
+    await expect(target).toBeVisible();
+    // Every pill link in the group meets the 44px target rule.
+    for (const link of await target.getByRole('link').all()) {
+      const box = await link.boundingBox();
+      if (!box) continue;
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
   }
-  const submit = page.getByRole('button', { name: 'اعمال' });
+  const search = page.getByLabel('جست‌وجو در عنوان');
+  const searchBox = await search.boundingBox();
+  expect(searchBox).not.toBeNull();
+  expect(searchBox!.height).toBeGreaterThanOrEqual(44);
+  const submit = page.getByRole('button', { name: 'جست‌وجو' });
   const submitBox = await submit.boundingBox();
   expect(submitBox!.height).toBeGreaterThanOrEqual(44);
   expect(submitBox!.width).toBeGreaterThanOrEqual(44);
@@ -65,10 +73,10 @@ test('S3-7 library at 320px reflows without losing controls', async ({ page }) =
   const { scroll, inner } = await noHorizontalScroll(page);
   expect(scroll).toBeLessThanOrEqual(inner);
 
-  await expect(page.getByLabel('سطح')).toBeVisible();
-  await expect(page.getByLabel('دسته')).toBeVisible();
+  await expect(page.getByRole('group', { name: 'سطح' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'دسته' })).toBeVisible();
   await expect(page.getByLabel('جست‌وجو در عنوان')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'اعمال' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'جست‌وجو' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Morning Market' })).toBeVisible();
 
   await page.screenshot({ path: 'test-results/browser-shots/s3-narrow-320.png' });

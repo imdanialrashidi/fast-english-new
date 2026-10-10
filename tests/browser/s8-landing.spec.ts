@@ -1,18 +1,20 @@
 import { expect, test } from '@playwright/test';
 
-// S8-1/S8-9 (landing): the short Persian landing at 360 + 390 CSS px.
-// Promise, real sample link, how-it-works, DB plan list in the sales-on
-// lane state (the browser lane serves with SALES_ENABLED=true so the S5/S6
-// purchase journeys keep working; the sales-off preparing state is proven
-// in Pest S8SalesFlagTest), install and download links, FAQ link, DRAFT
-// label. No horizontal scroll and every touch target is at least 44px.
+// Slice redesign: the landing is real copy with a hero, a real-data
+// product preview, how-it-works, the real sample, newest topics, DB plan
+// list (sales-on lane), install/download, FAQ, and a final CTA. No DRAFT
+// badge, no fabricated claims. No horizontal scroll and every touch
+// target is at least 44px.
 
 async function checkLanding(page, width: number) {
   await page.setViewportSize({ width, height: 844 });
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'با داستان‌های واقعی انگلیسی را سریع‌تر یاد بگیر' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'انگلیسی را با داستان‌های کوتاه و صوت هماهنگ یاد بگیر' })).toBeVisible();
+  // Let the staged entry reveals settle so touch targets are measured
+  // at rest geometry, not mid-transition.
+  await page.waitForTimeout(600);
 
   // No horizontal scroll.
   const scroll = await page.evaluate(() => ({
@@ -37,11 +39,12 @@ async function checkLanding(page, width: number) {
   expect(errors).toEqual([]);
 }
 
-test('S8 landing 360: draft promise, sample, preparing state, links', async ({ page }) => {
+test('S8 landing 360: hero, preview, sample, plans, install, faq', async ({ page }) => {
   await checkLanding(page, 360);
-  await expect(page.getByText('DRAFT')).toBeVisible();
-  await expect(page.getByRole('link', { name: /شروع کنید/ }).first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'منتخبی از مطالب' })).toBeVisible();
+  await expect(page.getByText('DRAFT')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'شروع با نمونه رایگان' }).first()).toBeVisible();
+  await expect(page.getByLabel('پیش‌نمایش روش یادگیری با نمونه واقعی')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'تازه‌ترین مطالب' })).toBeVisible();
   // Sales-on lane state: DB plan names with durations (never amounts),
   // a purchase CTA, and no preparing-state text.
   await expect(page.getByText('یک‌ماهه آزمایشی (TEST)')).toBeVisible();
@@ -58,4 +61,15 @@ test('S8 landing 390: same states recomposed', async ({ page }) => {
   await checkLanding(page, 390);
   await expect(page.getByText('یک‌ماهه آزمایشی (TEST)')).toBeVisible();
   await page.screenshot({ path: 'test-results/browser-shots/s8-landing-390.png' });
+});
+
+test('S8 landing reduced-motion: content renders without animation', async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'انگلیسی را با داستان‌های کوتاه و صوت هماهنگ یاد بگیر' })).toBeVisible();
+  const opacity = await page.locator('.fe-preview').evaluate((el) => getComputedStyle(el).opacity);
+  expect(opacity).toBe('1');
+  await expect(page.locator('.fe-preview-lines li').first()).toBeVisible();
+  await ctx.close();
 });

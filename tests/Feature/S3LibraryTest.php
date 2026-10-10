@@ -38,10 +38,10 @@ test('pagination returns 12 per page with the correct total', function () {
 
     $page1 = $this->get('/app')->assertOk();
     $page1->assertSee('13 مطلب');
-    expect(substr_count($page1->getContent(), '<article class="fe-card">'))->toBe(12);
+    expect(substr_count($page1->getContent(), '<article class="fe-card'))->toBe(12);
 
     $page2 = $this->get('/app?page=2')->assertOk();
-    expect(substr_count($page2->getContent(), '<article class="fe-card">'))->toBe(1);
+    expect(substr_count($page2->getContent(), '<article class="fe-card'))->toBe(1);
 });
 
 test('the library query count stays constant as topics grow (no N+1)', function () {

@@ -13,9 +13,9 @@ const D = { email: 'browser-d@example.com', password: 'password' };
 
 async function login(page, user: { email: string; password: string }) {
   await page.goto(LOGIN);
-  await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password);
-  await page.getByRole('button', { name: 'Log in' }).click();
+  await page.getByLabel('ایمیل', { exact: true }).fill(user.email);
+  await page.getByLabel('رمز عبور', { exact: true }).fill(user.password);
+  await page.getByRole('button', { name: 'ورود' }).click();
   await page.waitForURL('**/account**');
 }
 
@@ -37,12 +37,10 @@ async function assertTargets(page) {
     expect(box).not.toBeNull();
     expect(box!.height).toBeGreaterThanOrEqual(44);
   }
-  for (const speed of await page.locator('.fe-speed-btn').all()) {
-    const box = await speed.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.height).toBeGreaterThanOrEqual(44);
-    expect(box!.width).toBeGreaterThanOrEqual(44);
-  }
+  const speedBox = await page.locator('#player-speed').boundingBox();
+  expect(speedBox).not.toBeNull();
+  expect(speedBox!.height).toBeGreaterThanOrEqual(44);
+  expect(speedBox!.width).toBeGreaterThanOrEqual(44);
   for (const nav of await page.getByRole('link', { name: /مطالب|ذخیره‌شده‌ها|حساب/ }).all()) {
     const box = await nav.boundingBox();
     if (!box) continue;
@@ -58,6 +56,8 @@ for (const width of [360, 390]) {
     await login(page, S4_MOBILE_USERS[width].reader);
     await page.goto(READER);
     await page.locator('ol.fe-sentences, article.fe-english-body').first().waitFor();
+    await page.locator('#player-toggle').click();
+    await expect(page.locator('#player-seek')).toBeVisible();
 
     const { scroll, inner } = await noHorizontalScroll(page);
     expect(scroll).toBeLessThanOrEqual(inner);

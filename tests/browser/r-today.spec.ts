@@ -11,11 +11,11 @@ const FRESH = { email: `r-today-${Date.now()}@example.com`, password: 'password-
 
 async function registerAndLogin(page) {
   await page.goto('/register');
-  await page.getByLabel('Name').fill('Today Fresh');
-  await page.getByLabel('Email').fill(FRESH.email);
-  await page.getByLabel('Password', { exact: true }).fill(FRESH.password);
-  await page.getByLabel('Confirm password').fill(FRESH.password);
-  await page.getByRole('button', { name: 'Register' }).click();
+  await page.getByLabel('نام').fill('Today Fresh');
+  await page.getByLabel('ایمیل', { exact: true }).fill(FRESH.email);
+  await page.getByLabel('رمز عبور', { exact: true }).fill(FRESH.password);
+  await page.getByLabel('تکرار رمز عبور').fill(FRESH.password);
+  await page.getByRole('button', { name: 'ساخت حساب' }).click();
   await page.waitForURL('**/account**');
 }
 
@@ -52,9 +52,9 @@ test('R5 today at 390px: greeting, goal default, empty plan, tab bar', async ({ 
 test('R5 today at 1440px: sidebar shell, same IA as mobile', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(LOGIN);
-  await page.getByLabel('Email').fill(FRESH.email);
-  await page.getByLabel('Password').fill(FRESH.password);
-  await page.getByRole('button', { name: 'Log in' }).click();
+  await page.getByLabel('ایمیل', { exact: true }).fill(FRESH.email);
+  await page.getByLabel('رمز عبور', { exact: true }).fill(FRESH.password);
+  await page.getByRole('button', { name: 'ورود' }).click();
   await page.waitForURL('**/account**');
   await page.goto('/app/today');
 

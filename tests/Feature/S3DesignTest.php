@@ -1,12 +1,12 @@
 <?php
 
-// S3-8 evidence (+ Editorial Ivory 2026-10-09): every learner text pair
-// reuses the DESIGN.md tokens at or above 4.5:1 (WCAG 2.2 AA normal text).
-// Blue primary is fill-with-white-label; amber accent is fill-with-navy
-// label (never body text on surface), so the pair list tracks label/fill
-// semantics. This test parses the canonical token source
-// (resources/css/app.css :root --fe-*), recomputes relative luminance, and
-// locks the pairs. Measured values are recorded in docs/DESIGN.md.
+// Modern hybrid system (owner-approved 2026-10-10; see
+// docs/DESIGN.md): every learner text pair reuses the canonical tokens at
+// or above 4.5:1 (WCAG 2.2 AA normal text) in BOTH themes. Light is soft
+// ivory/navy/blue/amber (hybrid-light + editorial); dark is bold navy
+// (hybrid-dark). This test parses the canonical token
+// source (resources/css/app.css :root[data-theme] blocks), recomputes
+// relative luminance, and locks the pairs per theme.
 
 function s3Luminance(string $hex): float
 {
@@ -32,14 +32,24 @@ function s3Contrast(string $a, string $b): float
     return round(($lighter + 0.05) / ($darker + 0.05), 2);
 }
 
-test('learner text pairs measure at or above 4.5 to 1', function () {
-    $css = (string) file_get_contents(resource_path('css/app.css'));
-
-    preg_match_all('/--fe-([a-z-]+):\s*(#[0-9a-fA-F]{6})/', $css, $matches, PREG_SET_ORDER);
-    $tokens = [];
-    foreach ($matches as $match) {
-        $tokens[$match[1]] = strtolower($match[2]);
+function s3ThemeTokens(string $css, string $theme): array
+{
+    $pattern = "/:root\\[data-theme='".$theme."'\\]\\s*\\{(.*?)\\}/s";
+    if (! preg_match($pattern, $css, $match)) {
+        return [];
     }
+
+    preg_match_all('/--fe-([a-z-]+):\s*(#[0-9a-fA-F]{6})/', $match[0], $matches, PREG_SET_ORDER);
+    $tokens = [];
+    foreach ($matches as $m) {
+        $tokens[$m[1]] = strtolower($m[2]);
+    }
+
+    return $tokens;
+}
+
+test('learner text pairs measure at or above 4.5 to 1 in both themes', function () {
+    $css = (string) file_get_contents(resource_path('css/app.css'));
 
     $pairs = [
         'text on canvas' => ['text', 'canvas'],
@@ -49,53 +59,62 @@ test('learner text pairs measure at or above 4.5 to 1', function () {
         'on-primary on primary' => ['on-primary', 'primary'],
         'on-primary on primary-hover' => ['on-primary', 'primary-hover'],
         'on-accent on accent' => ['on-accent', 'accent'],
+        'on-secondary on secondary' => ['on-secondary', 'secondary'],
         'text on tint-lavender' => ['text', 'tint-lavender'],
         'success on surface' => ['success', 'surface'],
         'danger on surface' => ['danger', 'surface'],
     ];
 
-    foreach ($pairs as $label => [$fg, $bg]) {
-        expect($tokens)->toHaveKey($fg)->toHaveKey($bg);
-        $ratio = s3Contrast($tokens[$fg], $tokens[$bg]);
-        fwrite(STDERR, "\n[S3 contrast] {$label}: {$ratio}:1");
-        expect($ratio)->toBeGreaterThanOrEqual(4.5, "{$label} measured {$ratio}:1");
+    foreach (['light', 'dark'] as $theme) {
+        $tokens = s3ThemeTokens($css, $theme);
+        expect($tokens)->not->toBeEmpty("missing :root[data-theme='{$theme}'] block");
+
+        // The owner base colors must stay exactly as approved.
+        $owner = $theme === 'light'
+            ? ['text' => '#172238', 'canvas' => '#f7f5ef', 'primary' => '#4263eb', 'secondary' => '#dde5fb', 'accent' => '#e9ac52']
+            : ['text' => '#f7f5ef', 'canvas' => '#0e1626', 'primary' => '#8aa4ff', 'secondary' => '#2a3a55', 'accent' => '#e9ac52'];
+        foreach ($owner as $token => $hex) {
+            expect($tokens)->toHaveKey($token);
+            expect($tokens[$token])->toBe($hex, "[{$theme}] --fe-{$token} must stay owner-approved {$hex}");
+        }
+
+        foreach ($pairs as $label => [$fg, $bg]) {
+            expect($tokens)->toHaveKey($fg)->toHaveKey($bg);
+            $ratio = s3Contrast($tokens[$fg], $tokens[$bg]);
+            fwrite(STDERR, "\n[S3 contrast] [{$theme}] {$label}: {$ratio}:1");
+            expect($ratio)->toBeGreaterThanOrEqual(4.5, "[{$theme}] {$label} measured {$ratio}:1");
+        }
     }
 });
 
-test('learner control and focus pairs measure at or above 3 to 1', function () {
+test('learner control and focus pairs measure at or above 3 to 1 in both themes', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
-    preg_match_all('/--fe-([a-z-]+):\s*(#[0-9a-fA-F]{6})/', $css, $matches, PREG_SET_ORDER);
-    $tokens = [];
-    foreach ($matches as $match) {
-        $tokens[$match[1]] = strtolower($match[2]);
-    }
-
-    // Editorial Ivory controls: input/checkbox boundaries plus the blue
-    // focus ring on surface (focus uses --fe-primary everywhere).
     $pairs = [
         'input-border on surface' => ['input-border', 'surface'],
         'text on surface (text/surface legibility)' => ['text', 'surface'],
-        'primary on surface (blue focus ring)' => ['primary', 'surface'],
+        'primary on surface (focus ring)' => ['primary', 'surface'],
     ];
 
-    foreach ($pairs as $label => [$fg, $bg]) {
-        expect($tokens)->toHaveKey($fg)->toHaveKey($bg);
-        $ratio = s3Contrast($tokens[$fg], $tokens[$bg]);
-        fwrite(STDERR, "\n[S3 control] {$label}: {$ratio}:1");
-        expect($ratio)->toBeGreaterThanOrEqual(3.0, "{$label} measured {$ratio}:1");
+    foreach (['light', 'dark'] as $theme) {
+        $tokens = s3ThemeTokens($css, $theme);
+        expect($tokens)->not->toBeEmpty();
+
+        foreach ($pairs as $label => [$fg, $bg]) {
+            expect($tokens)->toHaveKey($fg)->toHaveKey($bg);
+            $ratio = s3Contrast($tokens[$fg], $tokens[$bg]);
+            fwrite(STDERR, "\n[S3 control] [{$theme}] {$label}: {$ratio}:1");
+            expect($ratio)->toBeGreaterThanOrEqual(3.0, "[{$theme}] {$label} measured {$ratio}:1");
+        }
     }
 });
 
-test('no color literal lives outside the token block', function () {
+test('no color literal lives outside the token blocks', function () {
     $css = (string) file_get_contents(resource_path('css/app.css'));
 
-    $rootBlock = '';
-    if (preg_match('/:root\s*\{(.*?)\}/s', $css, $match)) {
-        $rootBlock = $match[0];
-    }
-
-    $rest = str_replace($rootBlock, '', $css);
+    $rest = $css;
+    // Strip every :root...{...} token block (themed + fallback).
+    $rest = (string) preg_replace('/:root(\[data-theme=\'[a-z]+\'\])?\s*\{.*?\}/s', '', $rest);
     $rest = (string) preg_replace('/\/\*.*?\*\//s', '', $rest);
 
     expect($rest)->not->toMatch('/#[0-9a-fA-F]{3,8}\b/');

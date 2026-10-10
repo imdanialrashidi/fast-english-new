@@ -59,7 +59,7 @@ test('combined filters intersect and an empty result explains itself with a rese
 
     $response->assertSee('مطلبی با این مشخصات پیدا نشد');
     $response->assertSee('پاک کردن فیلترها');
-    $response->assertDontSee('<article class="fe-card">', false);
+    $response->assertDontSee('<article class="fe-card', false);
 });
 
 test('the active filter state is rendered back from the URL', function () {

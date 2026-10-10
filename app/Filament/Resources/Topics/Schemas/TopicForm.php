@@ -51,7 +51,7 @@ class TopicForm
                     ->helperText('Stored under a random name on the public disk; metadata is stripped on save.'),
                 Textarea::make('source_note')
                     ->label('Source note (private)')
-                    ->helperText('Private: never shown to learners.')
+                    ->helperText('Private: never shown to learners. Staff covers need four lines — Source: / License: / Checked: YYYY-MM-DD / Notes:. GD default covers (covers/gd-*.jpg) are exempt.')
                     ->columnSpanFull(),
                 Placeholder::make('status')
                     ->content(fn ($record) => $record?->status ?? 'draft')

@@ -9,11 +9,11 @@ async function registerFreshLearner(page, tag: string) {
   const email = `s6c-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
   const password = 'password123';
   await page.goto('/register');
-  await page.getByLabel('Name').fill(`S6C ${tag}`);
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByLabel('Confirm password').fill(password);
-  await page.getByRole('button', { name: 'Register' }).click();
+  await page.getByLabel('نام').fill(`S6C ${tag}`);
+  await page.getByLabel('ایمیل', { exact: true }).fill(email);
+  await page.getByLabel('رمز عبور', { exact: true }).fill(password);
+  await page.getByLabel('تکرار رمز عبور').fill(password);
+  await page.getByRole('button', { name: 'ساخت حساب' }).click();
   await page.waitForURL('**/account**');
   return email;
 }

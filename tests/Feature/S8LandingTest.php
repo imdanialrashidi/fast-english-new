@@ -13,7 +13,7 @@ beforeEach(function () {
     $this->seed(S5PaymentFixtureSeeder::class);
 });
 
-test('landing renders fa rtl with metadata, sample link, plans, and draft label', function () {
+test('landing renders fa rtl with metadata, sample link, plans, and no draft label', function () {
     $topic = ContentFixtures::publishedTopic();
     Lesson::factory()->for($topic)->create([
         'level' => 'A2',
@@ -29,8 +29,11 @@ test('landing renders fa rtl with metadata, sample link, plans, and draft label'
         ->and($html)->toContain('rel="canonical"')
         ->and($html)->toContain(route('download'))
         ->and($html)->toContain(route('trust.faq'))
-        ->and($html)->toContain('DRAFT')
+        // The landing is real copy now: no DRAFT badge (trust pages keep theirs).
+        ->and($html)->not->toContain('DRAFT')
         ->and($html)->toContain(route('reader.show', $topic).'?level=A2')
+        // Hero preview stages the real sample body text.
+        ->and($html)->toContain('پیش‌نمایش روش کار با متن واقعی')
         // Plan names from the database, never amounts (no price claims).
         ->and($html)->toContain('یک‌ماهه آزمایشی (TEST)')
         ->and($html)->not->toContain('100000')
@@ -40,7 +43,7 @@ test('landing renders fa rtl with metadata, sample link, plans, and draft label'
 test('landing without a sample shows the neutral state, never a broken link', function () {
     $html = $this->get(route('landing'))->assertOk()->getContent();
 
-    expect($html)->toContain('نمونه عمومی هنوز آماده نیست')
+    expect($html)->toContain('نمونه عمومی به‌زودی آماده می‌شود')
         ->and($html)->not->toContain('?level=');
 });
 

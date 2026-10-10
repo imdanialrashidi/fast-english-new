@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Lesson;
 use App\Models\Topic;
 use App\Support\AudioFile;
+use App\Support\TopicLicense;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -158,6 +159,19 @@ final class PublishLesson
         }
         if (trim((string) $topic->summary_public) === '') {
             $problems['summary_public'] = 'The topic summary must not be empty.';
+        }
+
+        // D4: every published topic shows a real cover, never empty.
+        if (trim((string) $topic->cover_path) === '') {
+            $problems['cover_path'] = 'The topic needs a cover before it can publish.';
+        } else {
+            // D4: a staff-uploaded cover (anything outside covers/gd-*.jpg)
+            // needs a license record (source + license + date checked + notes).
+            // GD default covers are exempt. No runtime third-party fetch.
+            $licenseProblem = TopicLicense::problem($topic->cover_path, $topic->source_note);
+            if ($licenseProblem !== null) {
+                $problems['cover_path'] = $licenseProblem;
+            }
         }
 
         return $problems;

@@ -22,9 +22,9 @@ const E = { email: 'browser-e@example.com', password: 'password' };
 
 async function login(page, user: { email: string; password: string }) {
   await page.goto(LOGIN);
-  await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password);
-  await page.getByRole('button', { name: 'Log in' }).click();
+  await page.getByLabel('ایمیل', { exact: true }).fill(user.email);
+  await page.getByLabel('رمز عبور', { exact: true }).fill(user.password);
+  await page.getByRole('button', { name: 'ورود' }).click();
   // Fortify redirects a successful login to /account; wait for the POST
   // to complete before any further navigation (no race with goto).
   await page.waitForURL('**/account**');
@@ -216,7 +216,7 @@ test('S2-3 logout clears the player and back/forward leaks no first-account data
   // Real logout through the account page form.
   await page.goto(ACCOUNT);
   await expect(page.locator('body')).toContainText(A.email);
-  await page.getByRole('button', { name: 'Log out' }).click();
+  await page.getByRole('button', { name: 'خروج از حساب' }).click();
   await expect(page.locator('#lesson-audio')).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText(A.email);
 

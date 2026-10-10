@@ -9,7 +9,12 @@
  * - S1 controls kept: play/pause labels, native range seek (drag +
  *   keyboard, RTL-aware), ±10 s clamped, speeds 0.75/1/1.25/1.5,
  *   no autoplay, play-rejection/buffering/network errors with retry.
- * - Mini-player (#mini-player) shows the current topic and level.
+ * - Mini-bar + expanded console: the bar rests collapsed (play · lesson ·
+ *   compact elapsed/total · speed-cycle · expand toggle) and opens into
+ *   the full seek/skip console on demand. Collapsed on first paint at
+ *   every width; the toggle always wins. Playback errors
+ *   auto-expand so their message + retry stay visible. Idle pages (no
+ *   lesson) keep the collapsed bar with play disabled.
  * - Opening a different lesson/level stops the current audio, loads the new
  *   source, seeks to the saved position (revision-isolated), and stays
  *   paused. Same-lesson navigation keeps the current time.
@@ -48,9 +53,16 @@
   });
 
   const STEP = 10;
-  const SPEEDS = [0.75, 1, 1.25, 1.5];
+  // Speed cycle order: tap steps 1 → 1.25 → 1.5 → 0.75 → 1. The rate
+  // sticks across lessons (standard sticky-speed behavior).
+  const SPEEDS = [1, 1.25, 1.5, 0.75];
+  state.speedIdx = 0;
   const SAVE_INTERVAL_MS = 15000;
   const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  // Lucide play/pause glyphs (same paths as <x-icon />), swapped without
+  // touching the button's accessible name handling elsewhere.
+  const PLAY_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+  const PAUSE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24" aria-hidden="true"><rect width="4" height="16" x="6" y="4"/><rect width="4" height="16" x="14" y="4"/></svg>';
 
   function $(id) {
     return document.getElementById(id);
@@ -77,42 +89,116 @@
       initialPosition: Number(el.dataset.initialPosition || 0),
       topic: el.dataset.topic || '',
       level: el.dataset.level || '',
+      coverUrl: el.dataset.coverUrl || '',
       authenticated: el.dataset.authenticated === '1',
     };
   }
 
+  function playerBar() {
+    return document.querySelector('.fe-playerbar');
+  }
+
+  function mainEl() {
+    return document.querySelector('.fe-player-main');
+  }
+
+  function controlsEl() {
+    return document.querySelector('.fe-player-controls');
+  }
+
+  function setThumb(url) {
+    const thumb = $('player-thumb');
+    if (!thumb) return;
+    const next = typeof url === 'string' && url !== '' ? url : '/icons/icon-192.png';
+    if (thumb.getAttribute('src') !== next) thumb.setAttribute('src', next);
+  }
+
+  // The same play element lives in the collapsed mini-row and, when
+  // expanded, moves into the centered transport cluster so the console
+  // reads [−10s][play 64px][+10s] without a duplicate button or ID.
+  function placePlay(expanded) {
+    const play = $('player-play');
+    const main = mainEl();
+    const controls = controlsEl();
+    const back = $('player-back');
+    const fwd = $('player-forward');
+    if (!play || !main || !controls || !back || !fwd) return;
+    if (expanded) {
+      if (play.parentElement !== controls) {
+        controls.appendChild(back);
+        controls.appendChild(play);
+        controls.appendChild(fwd);
+      }
+    } else if (play.parentElement !== main) {
+      main.prepend(play);
+      controls.appendChild(back);
+      controls.appendChild(fwd);
+    }
+  }
+
+  function setExpanded(expanded) {
+    const bar = playerBar();
+    const toggle = $('player-toggle');
+    const on = expanded === true;
+    if (bar) bar.setAttribute('data-expanded', String(on));
+    try {
+      document.body.dataset.playerExpanded = String(on);
+    } catch (_) {}
+    placePlay(on);
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(on));
+      toggle.setAttribute('aria-label', on ? 'جمع‌کردن کنترل‌ها' : 'نمایش کنترل‌های بیشتر');
+    }
+    return on;
+  }
+
+  function isExpanded() {
+    return playerBar()?.getAttribute('data-expanded') === 'true';
+  }
+
   function showError(message) {
     const errorBox = $('player-error');
+    const errorText = $('player-error-text');
     const retryBtn = $('player-retry');
     if (!errorBox || !retryBtn) return;
-    errorBox.textContent = message;
+    if (errorText) errorText.textContent = message;
+    else errorBox.textContent = message;
     errorBox.hidden = false;
     retryBtn.hidden = false;
+    // Errors live in the detail console: open it so the message stays seen.
+    setExpanded(true);
   }
 
   function clearError() {
     const errorBox = $('player-error');
+    const errorText = $('player-error-text');
     const retryBtn = $('player-retry');
     if (!errorBox || !retryBtn) return;
-    errorBox.textContent = '';
+    if (errorText) errorText.textContent = '';
+    else errorBox.textContent = '';
     errorBox.hidden = true;
     retryBtn.hidden = true;
   }
 
   function showProgressError(message) {
     const box = $('progress-error');
+    const boxText = $('progress-error-text');
     const retry = $('progress-retry');
     if (!box || !retry) return;
-    box.textContent = message;
+    if (boxText) boxText.textContent = message;
+    else box.textContent = message;
     box.hidden = false;
     retry.hidden = false;
+    setExpanded(true);
   }
 
   function clearProgressError() {
     const box = $('progress-error');
+    const boxText = $('progress-error-text');
     const retry = $('progress-retry');
     if (!box || !retry) return;
-    box.textContent = '';
+    if (boxText) boxText.textContent = '';
+    else box.textContent = '';
     box.hidden = true;
     retry.hidden = true;
   }
@@ -125,7 +211,22 @@
 
   function refreshPlayLabel() {
     const playBtn = $('player-play');
-    if (playBtn) playBtn.textContent = audio.paused ? 'پخش' : 'توقف';
+    const icon = $('player-play-icon');
+    if (icon) icon.innerHTML = audio.paused ? PLAY_SVG : PAUSE_SVG;
+    if (playBtn) playBtn.setAttribute('aria-label', audio.paused ? 'پخش' : 'توقف');
+  }
+
+  function paintSeekFill() {
+    const seek = $('player-seek');
+    if (!seek) return;
+    const d = audio.duration;
+    let pct = 0;
+    if (Number.isFinite(d) && d > 0 && Number.isFinite(audio.currentTime)) {
+      pct = Math.min(100, Math.max(0, (audio.currentTime / d) * 100));
+    }
+    seek.style.setProperty('--fe-seek-pct', `${pct}%`);
+    const fill = $('player-progress-fill');
+    if (fill) fill.style.width = `${pct}%`;
   }
 
   function refreshSeek() {
@@ -140,6 +241,15 @@
       dur.textContent = fmt(d);
     }
     cur.textContent = fmt(audio.currentTime);
+    paintSeekFill();
+  }
+
+  function refreshSpeedLabel() {
+    const label = $('player-speed-label');
+    const btn = $('player-speed');
+    const rate = SPEEDS[state.speedIdx] ?? 1;
+    if (label) label.textContent = `${rate}×`;
+    if (btn) btn.setAttribute('aria-label', `سرعت پخش: ${rate}×`);
   }
 
   function setMiniPlayer(topic, level) {
@@ -150,6 +260,11 @@
     } else {
       mini.textContent = 'پخش‌کننده آماده است';
     }
+  }
+
+  function setPlayEnabled(enabled) {
+    const playBtn = $('player-play');
+    if (playBtn) playBtn.disabled = !enabled;
   }
 
   function stopAndClear(reason) {
@@ -164,6 +279,8 @@
     state.revision = null;
     state.appliedInitialFor = null;
     setMiniPlayer('', '');
+    setThumb('/icons/icon-192.png');
+    setPlayEnabled(false);
     refreshPlayLabel();
     refreshSeek();
     if (reason) {
@@ -368,7 +485,7 @@
           });
           const data = await res.json().catch(() => null);
           if (res.status === 201) {
-            btn.textContent = 'ذخیره شد ✓';
+            btn.textContent = 'ذخیره شد';
             btn.disabled = true;
             if (status) status.textContent = '';
           } else {
@@ -397,10 +514,111 @@
             },
           });
           if (!res.ok) throw new Error(`remove failed: ${res.status}`);
-          btn.closest('.fe-vocab-row')?.remove();
+          const row = btn.closest('.fe-vocab-row');
+          row?.remove();
           if (status) status.textContent = '';
+          if (document.querySelectorAll('.fe-vocab-row').length === 0) {
+            window.location.reload();
+          }
         } catch (_) {
           if (status) status.textContent = 'حذف واژه ناموفق بود. دوباره تلاش کنید.';
+        }
+      });
+    });
+
+    document.querySelectorAll('.fe-word-edit').forEach((btn) => {
+      if (btn.dataset.feBound === '1') return;
+      btn.dataset.feBound = '1';
+      btn.addEventListener('click', () => {
+        const row = btn.closest('.fe-vocab-row');
+        const form = row?.querySelector('.fe-word-form');
+        if (!form) return;
+        const open = form.hasAttribute('hidden');
+        if (open) {
+          form.removeAttribute('hidden');
+          btn.setAttribute('aria-expanded', 'true');
+          form.querySelector('input')?.focus();
+        } else {
+          form.setAttribute('hidden', '');
+          btn.setAttribute('aria-expanded', 'false');
+          btn.focus();
+        }
+      });
+    });
+
+    document.querySelectorAll('.fe-word-form').forEach((form) => {
+      if (form.dataset.feBound === '1') return;
+      form.dataset.feBound = '1';
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const row = form.closest('.fe-vocab-row');
+        const formStatus = form.querySelector('.fe-word-form-status');
+        const meaning = form.querySelector('input[name="meaning_fa"]')?.value ?? '';
+        const example = form.querySelector('input[name="example_en"]')?.value ?? '';
+        try {
+          const res = await fetch(`/app/words/${Number(form.dataset.wordId)}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': csrf(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ meaning_fa: meaning, example_en: example }),
+          });
+          const data = await res.json().catch(() => null);
+          if (!res.ok) throw new Error((data && data.message) || `edit failed: ${res.status}`);
+          if (row) {
+            const main = row.querySelector('.fe-vocab-main');
+            const meta = row.querySelector('.fe-vocab-meta');
+            row.querySelector('.fe-vocab-meaning')?.remove();
+            row.querySelector('.fe-vocab-example')?.remove();
+            if (data && data.meaning_fa) {
+              const p = document.createElement('p');
+              p.className = 'fe-vocab-meaning';
+              p.setAttribute('dir', 'auto');
+              p.textContent = data.meaning_fa;
+              if (meta) meta.before(p);
+              else main?.append(p);
+            }
+            if (data && data.example_en) {
+              const p = document.createElement('p');
+              p.className = 'fe-vocab-example';
+              p.setAttribute('lang', 'en');
+              p.setAttribute('dir', 'ltr');
+              p.textContent = data.example_en;
+              if (meta) meta.before(p);
+              else main?.append(p);
+            }
+          }
+          if (formStatus) formStatus.textContent = 'ذخیره شد.';
+        } catch (_) {
+          if (formStatus) formStatus.textContent = 'ذخیره تغییرات ناموفق بود. دوباره تلاش کنید.';
+        }
+      });
+    });
+
+    document.querySelectorAll('.fe-word-known').forEach((btn) => {
+      if (btn.dataset.feBound === '1') return;
+      btn.dataset.feBound = '1';
+      btn.addEventListener('click', async () => {
+        const status = document.getElementById('words-status');
+        const target = btn.dataset.targetStatus || 'known';
+        try {
+          const res = await fetch(`/app/words/${Number(btn.dataset.wordId)}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+              'X-CSRF-TOKEN': csrf(),
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({ status: target }),
+          });
+          if (!res.ok) throw new Error(`status failed: ${res.status}`);
+          window.location.reload();
+        } catch (_) {
+          if (status) status.textContent = 'تغییر وضعیت ناموفق بود. دوباره تلاش کنید.';
         }
       });
     });
@@ -411,8 +629,29 @@
       showBtn.addEventListener('click', () => {
         document.getElementById('flash-meaning')?.removeAttribute('hidden');
         document.getElementById('flash-grades')?.removeAttribute('hidden');
+        document.getElementById('flash-grades-hint')?.removeAttribute('hidden');
         showBtn.hidden = true;
+        document.querySelector('.fe-grade')?.focus();
       });
+    }
+
+    const gradeKeys = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' };
+    const reviewKeyHandler = (event) => {
+      const grades = document.getElementById('flash-grades');
+      if (!grades || grades.hasAttribute('hidden')) return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      const fa = { '۱': '1', '۲': '2', '۳': '3', '۴': '4' }[event.key] || event.key;
+      const grade = gradeKeys[fa];
+      if (!grade) return;
+      const btn = grades.querySelector(`.fe-grade[data-grade="${grade}"]`);
+      if (btn) {
+        event.preventDefault();
+        btn.click();
+      }
+    };
+    if (!window.__feReviewKeys && document.querySelector('.fe-flash')) {
+      window.__feReviewKeys = true;
+      document.addEventListener('keydown', reviewKeyHandler);
     }
 
     document.querySelectorAll('.fe-grade').forEach((btn) => {
@@ -475,7 +714,9 @@
           const next = !isBookmarked;
           bookmarkBtn.dataset.bookmarked = next ? '1' : '0';
           bookmarkBtn.setAttribute('aria-pressed', String(next));
-          bookmarkBtn.textContent = next ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره برای بعد';
+          const label = bookmarkBtn.querySelector('span');
+          if (label) label.textContent = next ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره برای بعد';
+          else bookmarkBtn.textContent = next ? 'حذف از ذخیره‌شده‌ها' : 'ذخیره برای بعد';
           if (status) status.textContent = '';
         } catch (_) {
           if (status) status.textContent = 'ذخیره‌سازی ناموفق بود. دوباره تلاش کنید.';
@@ -530,9 +771,12 @@
     const data = lessonData();
     if (!data) {
       // Non-reader page (library, saved, account): keep playing.
+      // An idle bar (no source yet) keeps play disabled.
+      if (state.lessonId === null) setPlayEnabled(false);
       return;
     }
     state.authenticated = data.authenticated;
+    setPlayEnabled(true);
 
     if (state.lessonId !== null && state.lessonId !== data.lessonId) {
       // A different lesson or level: stop the current audio first so the
@@ -551,6 +795,7 @@
       clearError();
       clearProgressError();
       setMiniPlayer(data.topic, data.level);
+      setThumb(data.coverUrl);
       audio.src = data.audioUrl;
       try {
         audio.load();
@@ -578,6 +823,7 @@
     // Same lesson and revision (e.g., back navigation): keep the time.
     state.authenticated = data.authenticated;
     setMiniPlayer(data.topic, data.level);
+    setThumb(data.coverUrl);
   }
 
   // --- Persisted controls: bound once. ---
@@ -588,6 +834,18 @@
     const fwdBtn = $('player-forward');
     const seek = $('player-seek');
     const status = $('player-status');
+    const toggle = $('player-toggle');
+
+    // The bar rests collapsed on first paint everywhere (phones and
+    // desktop alike — deterministic for users and proofs); the toggle
+    // always wins afterwards, and errors auto-expand.
+    if (toggle && !toggle.dataset.feBound) {
+      toggle.dataset.feBound = '1';
+      setExpanded(false);
+      toggle.addEventListener('click', () => {
+        setExpanded(!isExpanded());
+      });
+    }
 
     playBtn?.addEventListener('click', () => {
       clearError();
@@ -617,14 +875,16 @@
       refreshSeek();
     });
 
-    document.querySelectorAll('.fe-speed-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const next = Number(btn.dataset.speed);
-        if (!SPEEDS.includes(next)) return;
-        audio.playbackRate = next;
-        document.querySelectorAll('.fe-speed-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    const speedBtn = $('player-speed');
+    if (speedBtn && !speedBtn.dataset.feBound) {
+      speedBtn.dataset.feBound = '1';
+      speedBtn.addEventListener('click', () => {
+        state.speedIdx = ((state.speedIdx ?? 0) + 1) % SPEEDS.length;
+        audio.playbackRate = SPEEDS[state.speedIdx];
+        refreshSpeedLabel();
       });
-    });
+    }
+    refreshSpeedLabel();
 
     $('player-retry')?.addEventListener('click', () => {
       clearError();

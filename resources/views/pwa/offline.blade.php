@@ -7,13 +7,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#F7F5EF">
+    <meta name="theme-color" content="#f7f5ef">
     <title>قطع اتصال — Fast English</title>
     <style>
-        :root { --fe-canvas: #F7F5EF; --fe-surface: #FFFDF8; --fe-text: #172238; --fe-muted: #5B6372; --fe-primary: #4263EB; --fe-on-primary: #FFFFFF; }
+        :root { --fe-canvas: #f7f5ef; --fe-surface: #ffffff; --fe-text: #172238; --fe-muted: #5b6372; --fe-primary: #4263eb; --fe-on-primary: #ffffff; }
         body { margin: 0; background: var(--fe-canvas); color: var(--fe-text); font-family: system-ui, Tahoma, sans-serif; }
         main { max-width: 40rem; margin: 0 auto; padding: 3rem 1.25rem; text-align: center; }
-        .fe-card { background: var(--fe-surface); border: 1px solid #E7DFD2; border-radius: 1.5rem; padding: 2rem 1.5rem; }
+        .fe-mark { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 1rem; }
+        .fe-card { background: var(--fe-surface); border: 1px solid #e7dfd2; border-radius: 1.25rem; padding: 2rem 1.5rem; }
         h1 { font-size: 1.25rem; margin: 0 0 .75rem; }
         p { color: var(--fe-muted); font-size: 1rem; line-height: 1.75; }
         .fe-actions { display: flex; gap: .75rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
@@ -25,6 +26,7 @@
 <body>
 <main>
     <div class="fe-card">
+        <img class="fe-mark" src="/icons/icon-192.png" width="64" height="64" alt="Fast English">
         <h1>اتصال اینترنت برقرار نیست</h1>
         <p id="fe-offline-message">برای ادامه به اینترنت وصل شوید</p>
         <div class="fe-actions">

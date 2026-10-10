@@ -79,6 +79,7 @@ test('staff creates a topic with a cover and publishes a lesson end to end', fun
         ->set('data.title_en', 'S3 Staff Topic')
         ->set('data.summary_public', 'Created through the panel by staff.')
         ->set('data.cover_path', s3UploadedFile('s3-cover-fixture.jpg', 'cover.jpg'))
+        ->set('data.source_note', "Source: staff archive\nLicense: CC-BY 4.0\nChecked: 2026-10-01\nNotes: S3 staff e2e cover.")
         ->call('create')
         ->assertHasNoErrors();
 

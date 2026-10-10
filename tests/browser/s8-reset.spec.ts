@@ -33,7 +33,7 @@ async function checkResetForm(page, width: number) {
 
 test('S8 reset 360: unknown email gets the neutral message', async ({ page }) => {
   await checkResetForm(page, 360);
-  await page.getByLabel('ایمیل').fill(`s8-unknown-${Date.now()}@example.com`);
+  await page.getByLabel('ایمیل', { exact: true }).fill(`s8-unknown-${Date.now()}@example.com`);
   await page.getByRole('button', { name: 'ارسال پیوند بازیابی' }).click();
   // The neutral Persian status — identical for known and unknown emails.
   await expect(page.getByText('اگر حسابی با این ایمیل وجود داشته باشد، پیوند بازیابی ارسال شد.')).toBeVisible();

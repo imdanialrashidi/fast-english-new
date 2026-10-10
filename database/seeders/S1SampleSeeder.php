@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Lesson;
 use App\Models\Topic;
 use App\Support\Sentences;
+use App\Support\TopicCover;
+use App\Support\TopicLicense;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,6 +36,8 @@ class S1SampleSeeder extends Seeder
             [
                 'title_en' => 'The City Park',
                 'summary_public' => 'A short story about a Saturday morning in the city park, told at two levels.',
+                'cover_path' => TopicCover::generate('city-park'),
+                'source_note' => TopicLicense::generatedRecord('city-park'),
                 'status' => 'published',
                 'published_at' => now(),
             ]
@@ -46,6 +50,8 @@ class S1SampleSeeder extends Seeder
             [
                 'title_en' => 'Night Trains',
                 'summary_public' => 'A B1 story about an overnight train journey. Full text requires a subscription.',
+                'cover_path' => TopicCover::generate('night-trains'),
+                'source_note' => TopicLicense::generatedRecord('night-trains'),
                 'status' => 'published',
                 'published_at' => now(),
             ]

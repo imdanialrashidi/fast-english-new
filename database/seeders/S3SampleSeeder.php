@@ -6,7 +6,8 @@ use App\Models\Category;
 use App\Models\Lesson;
 use App\Models\Topic;
 use App\Models\User;
-use App\Support\CoverImage;
+use App\Support\TopicCover;
+use App\Support\TopicLicense;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
  * Everything here is a labelled FIXTURE (never production): prose is
  * original sample text, audio bytes are copies of the S1 sine-tone
  * fixtures (A-series = 20 s, B-series = 30 s, ffprobe-measured), covers
- * are copies of database/seeders/fixtures/s3-cover-fixture.* (PIL-made),
+ * are GD-generated deterministic abstracts (TopicCover, no baked text),
  * and the reviewer account is test-only. Refuses production.
  *
  * Adds to (never replaces) the S1 sample data:
@@ -58,8 +59,8 @@ class S3SampleSeeder extends Seeder
                 'category_id' => $everyday->id,
                 'title_en' => 'Morning Market',
                 'summary_public' => 'A busy morning market, told at two levels with key words.',
-                'cover_path' => $this->cover('morning-market', 's3-cover-fixture.jpg'),
-                'source_note' => 'S3 fixture: original sample text, PIL-made cover, tone audio.',
+                'cover_path' => $this->cover('morning-market'),
+                'source_note' => TopicLicense::generatedRecord('morning-market'),
                 'status' => 'published',
                 'published_at' => now(),
             ]
@@ -80,8 +81,8 @@ class S3SampleSeeder extends Seeder
                 'category_id' => $story->id,
                 'title_en' => 'Rainy Day',
                 'summary_public' => 'A quiet rainy afternoon and an old umbrella.',
-                'cover_path' => $this->cover('rainy-day', 's3-cover-fixture.png'),
-                'source_note' => 'S3 fixture: original sample text, PIL-made cover, tone audio.',
+                'cover_path' => $this->cover('rainy-day'),
+                'source_note' => TopicLicense::generatedRecord('rainy-day'),
                 'status' => 'published',
                 'published_at' => now(),
             ]
@@ -96,8 +97,8 @@ class S3SampleSeeder extends Seeder
                 'category_id' => $story->id,
                 'title_en' => 'Hidden Draft Notebook',
                 'summary_public' => 'S3 fixture draft: must never appear outside the staff panel.',
-                'cover_path' => $this->cover('draft-notebook', 's3-cover-fixture.webp'),
-                'source_note' => 'S3 fixture draft.',
+                'cover_path' => $this->cover('draft-notebook'),
+                'source_note' => TopicLicense::generatedRecord('draft-notebook'),
                 'status' => 'draft',
                 'published_at' => null,
             ]
@@ -110,7 +111,8 @@ class S3SampleSeeder extends Seeder
                 'category_id' => $everyday->id,
                 'title_en' => 'Empty Shelf',
                 'summary_public' => 'S3 fixture: a published topic with no lessons.',
-                'source_note' => 'S3 fixture.',
+                'cover_path' => $this->cover('empty-shelf'),
+                'source_note' => TopicLicense::generatedRecord('empty-shelf'),
                 'status' => 'published',
                 'published_at' => now(),
             ]
@@ -122,7 +124,8 @@ class S3SampleSeeder extends Seeder
                 'category_id' => $story->id,
                 'title_en' => 'Archived Whisper',
                 'summary_public' => 'S3 fixture: only an archived lesson lives here.',
-                'source_note' => 'S3 fixture.',
+                'cover_path' => $this->cover('archived-whisper'),
+                'source_note' => TopicLicense::generatedRecord('archived-whisper'),
                 'status' => 'published',
                 'published_at' => now(),
             ]
@@ -178,21 +181,12 @@ class S3SampleSeeder extends Seeder
         );
     }
 
-    private function cover(string $slug, string $fixtureFile): string
+    private function cover(string $slug): string
     {
-        $path = "covers/s3-{$slug}.".pathinfo($fixtureFile, PATHINFO_EXTENSION);
-        Storage::disk('public')->makeDirectory('covers');
-        copy(
-            database_path("seeders/fixtures/{$fixtureFile}"),
-            Storage::disk('public')->path($path)
-        );
-
-        // Explicit re-encode: DatabaseSeeder runs WithoutModelEvents, so
-        // the Topic saving hook is suppressed during seeding. Seeded covers
-        // go through the same metadata-stripping pipeline as uploads.
-        CoverImage::reencode($path);
-
-        return $path;
+        // D4: deterministic GD abstract (no PIL, no baked text, no fetch).
+        // Seeding runs WithoutModelEvents in DatabaseSeeder, so the Topic
+        // hook is suppressed — the generator already re-encodes (EXIF out).
+        return TopicCover::generate($slug);
     }
 
     private function marketA1(): string

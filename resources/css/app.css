@@ -3,17 +3,23 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @theme {
-    --font-sans: 'Inter', 'Vazirmatn', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Vazirmatn', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 /*
- * Fast English editorial tokens ( Direction — Editorial Ivory,
- * owner-approved 2026-10-09; see docs/DESIGN.md for mapping, roles, and
- * measured contrast). The :root block owns every color value; components
- * use only these variables (guarded by tests/Feature/S3DesignTest.php).
+ * Fast English application tokens — modern hybrid system 2026-10-10
+ * (see docs/DESIGN.md). Owner base: ivory #F7F5EF / navy #172238 /
+ * blue #4263EB / amber #E9AC52. The two :root[data-theme] blocks own
+ * every color value; components use only var(--fe-*). Light is soft
+ * (white cards, floating pill nav, centered player) like hybrid-light;
+ * dark is bold (navy surfaces, condensed uppercase titles, solid pills)
+ * like hybrid-dark; IA follows fast-english-editorial
+ * (Today/Discover/Reader/Words/Account + landing hero + desktop sidebar).
+ * Amber is limited to ring/highlights/progress accents; blue fills appear
+ * only on primary actions, active states, and focus — never a card wall.
  * Persian: self-hosted Vazirmatn variable (public/fonts/vazirmatn, OFL
- * beside the files). English: Inter with a system fallback stack.
+ * beside the files). English: Inter first with system fallback.
  */
 @font-face {
     font-family: 'Vazirmatn';
@@ -33,25 +39,97 @@
     unicode-range: U+0000-00FF, U+2000-206F;
 }
 
-:root {
+:root[data-theme='light'] {
     --fe-canvas: #f7f5ef;
-    --fe-surface: #fffdf8;
+    --fe-surface: #ffffff;
     --fe-text: #172238;
     --fe-muted-text: #5b6372;
     --fe-border: #e7dfd2;
-    --fe-input-border: #776b5b;
+    --fe-input-border: #5b6372;
     --fe-primary: #4263eb;
     --fe-primary-hover: #364fc7;
     --fe-on-primary: #ffffff;
+    --fe-secondary: #dde5fb;
+    --fe-on-secondary: #172238;
     --fe-accent: #e9ac52;
     --fe-on-accent: #172238;
-    --fe-tint-lavender: #efedf4;
+    --fe-tint-lavender: #ede8d6;
     --fe-success: #0f766e;
     --fe-danger: #be123c;
-    --fe-elev-1: 0 1px 2px rgb(59 46 31 / 0.1);
-    --fe-elev-2: 0 12px 32px rgb(59 46 31 / 0.14);
+    --fe-elev-1: 0 1px 2px rgb(23 34 56 / 0.08);
+    --fe-elev-2: 0 12px 32px rgb(23 34 56 / 0.12);
     --fe-font-fa: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
     --fe-font-en: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+:root[data-theme='dark'] {
+    --fe-canvas: #0e1626;
+    --fe-surface: #172238;
+    --fe-text: #f7f5ef;
+    --fe-muted-text: #b9c4d0;
+    --fe-border: #2a3a55;
+    --fe-input-border: #b9c4d0;
+    --fe-primary: #8aa4ff;
+    --fe-primary-hover: #a3b8ff;
+    --fe-on-primary: #172238;
+    --fe-secondary: #2a3a55;
+    --fe-on-secondary: #f7f5ef;
+    --fe-accent: #e9ac52;
+    --fe-on-accent: #172238;
+    --fe-tint-lavender: #232f45;
+    --fe-success: #2dd4bf;
+    --fe-danger: #fb7185;
+    --fe-elev-1: 0 1px 2px rgb(0 0 0 / 0.5);
+    --fe-elev-2: 0 12px 32px rgb(0 0 0 / 0.5);
+    --fe-font-fa: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    --fe-font-en: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Fallback before the pre-paint theme script runs: light values. */
+:root {
+    --fe-canvas: #f7f5ef;
+    --fe-surface: #ffffff;
+    --fe-text: #172238;
+    --fe-muted-text: #5b6372;
+    --fe-border: #e7dfd2;
+    --fe-input-border: #5b6372;
+    --fe-primary: #4263eb;
+    --fe-primary-hover: #364fc7;
+    --fe-on-primary: #ffffff;
+    --fe-secondary: #dde5fb;
+    --fe-on-secondary: #172238;
+    --fe-accent: #e9ac52;
+    --fe-on-accent: #172238;
+    --fe-tint-lavender: #ede8d6;
+    --fe-success: #0f766e;
+    --fe-danger: #be123c;
+    --fe-elev-1: 0 1px 2px rgb(23 34 56 / 0.08);
+    --fe-elev-2: 0 12px 32px rgb(23 34 56 / 0.12);
+    --fe-font-fa: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+    --fe-font-en: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Deliberate spacing + type scale (theme-independent; no color here).
+   Sections breathe on 1.5rem; related rows sit on 0.5–0.75rem; page
+   measure stays 680px, wide narrative (landing) 1024px. */
+:root {
+    --fe-space-1: 0.25rem;
+    --fe-space-2: 0.5rem;
+    --fe-space-3: 0.75rem;
+    --fe-space-4: 1rem;
+    --fe-space-5: 1.25rem;
+    --fe-space-6: 1.5rem;
+    --fe-space-8: 2rem;
+    --fe-space-12: 3rem;
+    --fe-radius-sm: 0.75rem;
+    --fe-radius-md: 1rem;
+    --fe-radius-lg: 1.25rem;
+    --fe-radius-pill: 999px;
+    --fe-measure: 680px;
+    --fe-measure-wide: 1024px;
+    --fe-title-hero: clamp(1.75rem, 1.35rem + 2.5vw, 2.75rem);
+    --fe-title-page: 1.5rem;
+    --fe-title-section: 1.25rem;
 }
 
 .fe-learner {
@@ -59,6 +137,7 @@
     color: var(--fe-text);
     font-family: var(--fe-font-fa);
     min-height: 100dvh;
+    transition: background-color 160ms ease, color 160ms ease;
 }
 
 .fe-measure {
@@ -67,10 +146,24 @@
     padding-inline: 1rem;
 }
 
+/* Headings carry the editorial rhythm; body text stays calm. */
+.fe-measure h1 {
+    font-size: 1.5rem;
+    line-height: 1.7;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+}
+
+.fe-measure h2 {
+    font-size: 1.125rem;
+    line-height: 1.7;
+    margin: 0 0 0.5rem;
+}
+
 .fe-surface {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-1);
 }
 
@@ -89,15 +182,50 @@
     margin-block: 0 1.1em;
 }
 
-/* Touch targets: at least 44x44 CSS px for every player/level control. */
+/* Icons: Lucide stroke glyphs via <x-icon />. One family, currentColor,
+   aligned to the label baseline. */
+.fe-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    vertical-align: -0.125em;
+}
+
+.fe-icon svg {
+    display: block;
+}
+
+.fe-icon[data-size='16'] svg {
+    width: 16px;
+    height: 16px;
+}
+
+.fe-icon[data-size='20'] svg {
+    width: 20px;
+    height: 20px;
+}
+
+.fe-icon[data-size='24'] svg {
+    width: 24px;
+    height: 24px;
+}
+
+.fe-icon[data-size='28'] svg {
+    width: 28px;
+    height: 28px;
+}
+
+/* Buttons: pill controls with icon + label. Blue fills only for primary
+   actions and active states — never a wall of blue cards. */
 .fe-btn,
-.fe-level-link,
-.fe-speed-btn {
+.fe-level-link {
     min-width: 44px;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.5rem;
     padding: 0.5rem 1rem;
     font-size: 1rem;
     font-family: var(--fe-font-fa);
@@ -107,74 +235,180 @@
     color: var(--fe-text);
     cursor: pointer;
     text-decoration: none;
+    transition: background-color 160ms ease, border-color 160ms ease, transform 120ms ease;
+}
+
+.fe-btn:active,
+.fe-level-link:active {
+    transform: scale(0.98);
 }
 
 .fe-btn-primary,
-.fe-level-link[aria-current='page'],
-.fe-speed-btn[aria-pressed='true'] {
+.fe-level-link[aria-current='page'] {
     background: var(--fe-primary);
     border-color: var(--fe-primary);
     color: var(--fe-on-primary);
+    font-weight: 700;
 }
 
 .fe-btn-primary:hover,
-.fe-level-link[aria-current='page']:hover,
-.fe-speed-btn[aria-pressed='true']:hover {
+.fe-level-link[aria-current='page']:hover {
     background: var(--fe-primary-hover);
     border-color: var(--fe-primary-hover);
 }
 
 .fe-level-link:not([aria-current='page']):hover,
-.fe-btn:not(.fe-btn-primary):hover,
-.fe-speed-btn:not([aria-pressed='true']):hover {
-    background: var(--fe-canvas);
+.fe-btn:not(.fe-btn-primary):hover {
+    background: var(--fe-tint-lavender);
 }
 
 .fe-btn:focus-visible,
 .fe-level-link:focus-visible,
-.fe-speed-btn:focus-visible,
+.fe-speed-cycle:focus-visible,
+.fe-expand-btn:focus-visible,
+.fe-skip-btn:focus-visible,
+.fe-play:focus-visible,
 .fe-seek:focus-visible {
     outline: 3px solid var(--fe-primary);
     outline-offset: 2px;
+}
+
+.fe-btn[disabled] {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
 }
 
 .fe-btn-accent {
     background: var(--fe-accent);
     border-color: var(--fe-accent);
     color: var(--fe-on-accent);
+    font-weight: 700;
 }
 
 .fe-btn-accent:hover {
-    background: var(--fe-accent);
-    border-color: var(--fe-text);
+    background: var(--fe-primary-hover);
+    border-color: var(--fe-primary-hover);
+    color: var(--fe-on-primary);
 }
 
+.fe-btn-quiet {
+    background: transparent;
+    border-color: transparent;
+    color: var(--fe-muted-text);
+    padding-inline: 0.75rem;
+}
+
+.fe-btn-quiet:hover {
+    background: var(--fe-tint-lavender);
+    color: var(--fe-text);
+}
+
+/* Circular studio play button: the single loud control in the player.
+   Compact 52px so the collapsed bar stays a mini-bar; ≥44px target. */
+.fe-play {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    border-radius: 999px;
+    background: var(--fe-primary);
+    border: 1px solid var(--fe-primary);
+    color: var(--fe-on-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--fe-elev-2);
+    transition: background-color 160ms ease, transform 120ms ease;
+}
+
+.fe-play:hover {
+    background: var(--fe-primary-hover);
+    border-color: var(--fe-primary-hover);
+}
+
+.fe-play[disabled] {
+    opacity: 0.55;
+    cursor: default;
+    transform: none;
+    box-shadow: var(--fe-elev-1);
+}
+
+.fe-play:active:not([disabled]) {
+    transform: scale(0.94);
+}
+
+/* Progress seek: a real app slider, not the browser default. The fill
+   percentage rides on --fe-seek-pct (set from playback time); the bar
+   mirrors with the RTL page (min sits right, fill grows from the right).
+   Firefox uses -moz-range-progress; WebKit paints the gradient track. */
 .fe-seek {
+    --fe-seek-pct: 0%;
+    -webkit-appearance: none;
+    appearance: none;
     width: 100%;
+    height: 44px;
     min-height: 44px;
-    accent-color: var(--fe-primary);
+    background: transparent;
+    cursor: pointer;
+    margin: 0;
 }
 
-/* Seek times stay on the same row as the slider on narrow screens. */
-.fe-seek-row {
-    flex-wrap: nowrap;
+.fe-seek::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(to left, var(--fe-primary) 0 var(--fe-seek-pct), var(--fe-border) var(--fe-seek-pct) 100%);
 }
 
-.fe-seek-row .fe-seek {
-    flex: 1 1 auto;
-    min-width: 0;
+.fe-seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin-top: -9px;
+    border-radius: 999px;
+    background: var(--fe-primary);
+    border: 3px solid var(--fe-surface);
+    box-shadow: var(--fe-elev-1);
 }
 
+.fe-seek::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--fe-border);
+}
+
+.fe-seek::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--fe-primary);
+}
+
+.fe-seek::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--fe-primary);
+    border: 3px solid var(--fe-surface);
+    box-shadow: var(--fe-elev-1);
+}
+
+/* Studio player: a collapsed mini-bar with an expanded console.
+   Collapsed (mobile default): thin progress + one row of
+   [play 52px][title + compact time][speed][expand] ≈ 76px tall, riding
+   above the 68px tab bar. Expanded reveals the seek slider, the ±10s
+   cluster, and status rows. Desktop (≥1024px) starts expanded.
+   Safe-area insets respected; the bar never overlaps navigation. */
 .fe-playerbar {
     position: fixed;
     inset-inline: 0;
-    /* The mobile bottom tab bar owns the bottom edge; the player rides
-       above it. Desktop (≥1024px) retires the tab bar — see media query. */
     bottom: calc(68px + env(safe-area-inset-bottom));
     z-index: 20;
     background: var(--fe-surface);
     border-top: 1px solid var(--fe-border);
     border-radius: 1.25rem 1.25rem 0 0;
+    box-shadow: var(--fe-elev-2);
     padding: 0.5rem 1rem calc(0.5rem + env(safe-area-inset-bottom));
 }
 
@@ -182,7 +416,144 @@
     max-width: 680px;
     margin-inline: auto;
     display: grid;
+    gap: 0.375rem;
+}
+
+/* Thin progress signal on the collapsed bar (visual only; the seek
+   slider in the detail is the accessible control). */
+.fe-player-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--fe-border);
+    overflow: hidden;
+}
+
+.fe-player-progress > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: var(--fe-primary);
+}
+
+.fe-player-main {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.fe-player-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    gap: 0.125rem;
+}
+
+/* Top row: lesson title (flex, 2-line clamp) + speed-cycle pill. */
+.fe-player-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.fe-player-title {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 700;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+.fe-player-compact-time {
+    margin: 0;
+    font-size: 0.75rem;
+    font-family: var(--fe-font-en);
+    font-variant-numeric: tabular-nums;
+    color: var(--fe-muted-text);
+    white-space: nowrap;
+}
+
+/* Expand toggle: chevron rotates open; always ≥44px. */
+.fe-expand-btn {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fe-muted-text);
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.fe-expand-btn:hover {
+    background: var(--fe-tint-lavender);
+    color: var(--fe-text);
+}
+
+.fe-expand-btn:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-playerbar[data-expanded='true'] .fe-expand-btn svg {
+    transform: rotate(180deg);
+}
+
+/* Detail console: seek + transport + status; hidden when collapsed. */
+.fe-player-detail {
+    display: grid;
+    gap: 0.375rem;
+}
+
+.fe-playerbar[data-expanded='false'] .fe-player-detail {
+    display: none;
+}
+
+/* Speed cycle: one standard button showing the live rate. Tapping steps
+   1 → 1.25 → 1.5 → 0.75 → 1; the rate sticks across lessons. */
+.fe-speed-cycle {
+    flex-shrink: 0;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.25rem;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.9375rem;
+    font-family: var(--fe-font-en);
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 120ms ease;
+}
+
+.fe-speed-cycle:hover {
+    background: var(--fe-tint-lavender);
+}
+
+.fe-speed-cycle:active {
+    transform: scale(0.96);
+}
+
+/* Centered transport cluster (expanded console): the podcast standard. */
+.fe-player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
 }
 
 .fe-player-row {
@@ -192,45 +563,180 @@
     flex-wrap: wrap;
 }
 
-.fe-time {
-    font-variant-numeric: tabular-nums;
-    font-size: 0.875rem;
-    color: var(--fe-muted-text);
-    min-width: 3ch;
-}
-
-.fe-main-pad {
-    padding-bottom: 26rem;
-}
-
-/* Learner top navigation (desktop) + bottom tab bar (mobile): four student
-   destinations — امروز / کشف / واژه‌ها / حساب. */
-.fe-topnav {
-    background: var(--fe-surface);
-    border: 1px solid var(--fe-border);
-    border-radius: 999px;
-    box-shadow: var(--fe-elev-1);
-    max-width: min(744px, calc(100% - 2rem));
-    margin: 0.75rem auto 0;
-}
-
-.fe-topnav nav {
-    max-width: 680px;
-    margin-inline: auto;
-    padding-inline: 1rem;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.fe-nav-link {
+.fe-skip-btn {
     min-width: 44px;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 1rem;
+    gap: 0.125rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fe-muted-text);
+    font-size: 0.8125rem;
+    font-family: var(--fe-font-en);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.fe-skip-btn:hover {
+    background: var(--fe-tint-lavender);
+    color: var(--fe-text);
+}
+
+.fe-skip-btn:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-time {
+    font-variant-numeric: tabular-nums;
+    font-family: var(--fe-font-en);
+    font-size: 0.8125rem;
+    color: var(--fe-muted-text);
+    min-width: 3ch;
+}
+
+/* End-of-content clearance follows the player state so the collapsed
+   mini-bar (≈76px + 68px tabs) needs less room than the expanded
+   console. The JS mirrors data-expanded onto body for older engines. */
+.fe-main-pad {
+    padding-bottom: 15rem;
+}
+
+.fe-learner:has(.fe-playerbar[data-expanded='true']) .fe-main-pad,
+body[data-player-expanded='true'] .fe-main-pad {
+    padding-bottom: 24rem;
+}
+
+/* Brand bar: a quiet product mark + current-section label. Deliberately
+   chromeless (no card, no shadow) so the logo carries the header and the
+   content below keeps the hierarchy. Desktop sidebar owns nav ≥1024px. */
+.fe-brandbar {
+    max-width: min(744px, calc(100% - 2rem));
+    margin: 0 auto;
+    padding: 0.75rem 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fe-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--fe-font-en);
+    font-weight: 800;
     font-size: 1rem;
     color: var(--fe-text);
+    text-decoration: none;
+    min-height: 44px;
+}
+
+/* Owner header lockup: exactly one variant shows per data-theme. */
+.fe-brand-logo {
+    display: inline-flex;
+    align-items: center;
+}
+
+.fe-logo-img {
+    display: block;
+    height: 36px;
+    width: auto;
+}
+
+:root[data-theme='dark'] .fe-logo-light {
+    display: none;
+}
+
+:root[data-theme='light'] .fe-logo-dark,
+:root:not([data-theme]) .fe-logo-dark {
+    display: none;
+}
+
+.fe-brand-sub {
+    margin-inline-start: auto;
+    font-size: 0.8125rem;
+    color: var(--fe-muted-text);
+    white-space: nowrap;
+}
+
+/* Library toolbar: result count + saved link share one quiet row. */
+.fe-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.fe-toolbar p {
+    margin: 0;
+}
+
+/* Plain editorial section: title + quiet divider rows, no card chrome.
+   Used for plan tasks, vocab lists, and landing blocks where grouping
+   needs whitespace and type — not containment. */
+.fe-section {
+    display: grid;
+    gap: 0.75rem;
+    padding-block: 0.25rem;
+}
+
+.fe-section + .fe-section {
+    border-top: 1px solid var(--fe-border);
+    padding-top: 1.25rem;
+}
+
+.fe-divider-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.fe-divider-list > li + li {
+    border-top: 1px solid var(--fe-border);
+}
+
+/* Learner top navigation (tablet) + bottom tab bar (mobile). */
+.fe-topnav {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    max-width: min(744px, calc(100% - 2rem));
+    margin: 0.5rem auto 0;
+    display: none;
+}
+
+.fe-topnav nav {
+    max-width: 680px;
+    margin-inline: auto;
+    display: flex;
+    gap: 0.25rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    box-shadow: var(--fe-elev-1);
+    padding: 0.25rem;
+}
+
+.fe-nav-link {
+    flex: 1 1 0;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--fe-muted-text);
     text-decoration: none;
     border-radius: 999px;
 }
@@ -238,6 +744,7 @@
 .fe-nav-link[aria-current='page'] {
     background: var(--fe-text);
     color: var(--fe-surface);
+    font-weight: 700;
 }
 
 .fe-nav-link:focus-visible {
@@ -245,8 +752,25 @@
     outline-offset: 2px;
 }
 
-/* Mobile bottom tab bar: the primary student navigation on narrow screens.
-   The fixed player bar sits above it; content padding clears both. */
+/* Public header: always visible (guests have no tab bar), scrolling
+   sideways on narrow phones instead of overflowing the page. */
+.fe-topnav-public {
+    display: block;
+}
+
+.fe-topnav-public nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.fe-topnav-public nav::-webkit-scrollbar {
+    display: none;
+}
+
+.fe-topnav-public .fe-brand,
+.fe-topnav-public .fe-nav-link {
+    flex-shrink: 0;
+}
 .fe-bottomnav {
     position: fixed;
     inset-inline: 0;
@@ -266,12 +790,12 @@
 }
 
 .fe-bottomnav a {
-    min-height: 52px;
+    min-height: 56px;
     display: grid;
-    gap: 0;
+    gap: 2px;
     align-content: center;
     justify-items: center;
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     color: var(--fe-muted-text);
     text-decoration: none;
     border-radius: 1rem;
@@ -283,14 +807,16 @@
     font-weight: 700;
 }
 
+.fe-bottomnav a[aria-current='page'] .fe-icon {
+    color: var(--fe-primary);
+}
+
 .fe-bottomnav a:focus-visible {
     outline: 3px solid var(--fe-primary);
     outline-offset: 2px;
 }
 
-/* Desktop shell: sidebar takes the navigation; the bottom tab bar and
-       the floating top pill retire at this width; the player returns to
-       the bottom edge. */
+/* Desktop shell: sidebar takes the navigation; bottom tabs retire. */
 .fe-shell {
     display: block;
 }
@@ -307,8 +833,14 @@
     margin-block: 0.75rem;
 }
 
-/* Placement options: each answer label is a 44px touch target reusing
-   learner tokens only (no new colors). */
+/* Level pills + tab pills share the quiet/active pair. */
+.fe-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Placement options: each answer label is a 44px touch target. */
 .fe-option {
     min-height: 44px;
     display: flex;
@@ -366,10 +898,34 @@
     background: var(--fe-surface);
     border-radius: 1rem;
     padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
 }
 
-/* PWA update notice: brief banner with a user-triggered refresh. The
-   new service worker never reloads on its own (see resources/js/pwa.js). */
+.fe-notice {
+    border: 1px solid var(--fe-border);
+    border-inline-start: 4px solid var(--fe-accent);
+    background: var(--fe-surface);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.fe-success-note {
+    border: 1px solid var(--fe-success);
+    color: var(--fe-success);
+    background: var(--fe-surface);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+/* PWA update notice: brief banner with a user-triggered refresh. */
 #pwa-update {
     position: fixed;
     inset-inline: 1rem;
@@ -381,7 +937,7 @@
     gap: 0.75rem;
     background: var(--fe-text);
     color: var(--fe-surface);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-2);
     padding: 0.75rem 1rem;
     font-size: 1rem;
@@ -399,11 +955,15 @@
     cursor: pointer;
 }
 
-/* Library: one card per topic. Every text pair reuses the measured
-   tokens. Cover keeps a fixed 16/9 aspect ratio. */
+/* Library: one card per topic with a calm cover treatment. */
 .fe-library {
     display: grid;
     gap: 1rem;
+}
+
+.fe-library-head {
+    display: grid;
+    gap: 0.25rem;
 }
 
 .fe-filters {
@@ -411,9 +971,17 @@
     gap: 0.75rem;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-1);
     padding: 1rem;
+}
+
+.fe-filters-title {
+    margin: 0;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .fe-field {
@@ -424,6 +992,9 @@
 .fe-field > label {
     font-size: 1rem;
     color: var(--fe-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
 }
 
 .fe-field select,
@@ -455,6 +1026,56 @@
     outline-offset: 2px;
 }
 
+.fe-field-hint {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+}
+
+.fe-field-error {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--fe-danger);
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+}
+
+.fe-password-wrap {
+    position: relative;
+}
+
+.fe-password-wrap input {
+    padding-inline-end: 3.25rem;
+}
+
+.fe-password-toggle {
+    position: absolute;
+    inset-inline-end: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fe-muted-text);
+    cursor: pointer;
+}
+
+.fe-password-toggle:hover {
+    background: var(--fe-tint-lavender);
+    color: var(--fe-text);
+}
+
+.fe-password-toggle:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
 .fe-field-actions {
     display: flex;
     align-items: end;
@@ -474,9 +1095,14 @@
 .fe-card {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-1);
     overflow: hidden;
+    transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.fe-card:hover {
+    border-color: var(--fe-secondary);
 }
 
 .fe-card-link {
@@ -496,26 +1122,47 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    background: var(--fe-canvas);
+    background: var(--fe-tint-lavender);
 }
 
-/* One fixed aspect-ratio container for every card. The wrapper owns the
-   16/9 ratio; the inner img or placeholder fills it. */
+/* One fixed aspect-ratio container for every card. */
 .fe-card-media {
     display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    background: var(--fe-canvas);
+    background: var(--fe-tint-lavender);
+    position: relative;
+}
+
+/* Level chip overlay: the topic's lead level rides on the cover art so
+   the card reads at a glance; full levels stay in the muted meta below. */
+.fe-card-level-overlay {
+    position: absolute;
+    inset-inline-start: 0.75rem;
+    top: 0.75rem;
+    display: inline-flex;
+}
+
+.fe-chip-overlay {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    box-shadow: var(--fe-elev-1);
+    font-weight: 700;
 }
 
 .fe-card-cover-empty {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    color: var(--fe-text);
     background: var(--fe-tint-lavender);
+}
+
+.fe-cover-logo {
+    display: block;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
 }
 
 .fe-card-body {
@@ -527,6 +1174,7 @@
 .fe-card-title {
     font-family: var(--fe-font-en);
     font-size: 1.125rem;
+    font-weight: 600;
     line-height: 1.5;
     margin: 0;
     color: var(--fe-text);
@@ -535,17 +1183,54 @@
 .fe-card-levels {
     margin: 0;
     color: var(--fe-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+}
+
+.fe-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--fe-tint-lavender);
+    color: var(--fe-text);
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.875rem;
+    font-family: var(--fe-font-en);
+}
+
+.fe-card-meta {
+    margin: 0;
+    color: var(--fe-muted-text);
+    font-size: 0.9375rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
 }
 
 .fe-empty {
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-1);
     padding: 1.5rem 1rem;
     display: grid;
     gap: 0.75rem;
     justify-items: start;
+}
+
+.fe-empty-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--fe-tint-lavender);
+    color: var(--fe-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .fe-pagination nav,
@@ -575,18 +1260,153 @@
     background: var(--fe-primary);
     border-color: var(--fe-primary);
     color: var(--fe-on-primary);
+    font-weight: 700;
 }
 
-/* Reader: bounded cover + active-lesson glossary + sentence sync. The
-   reader keeps one deliberately designed column; sentences are plain
-   text rows, never cards. */
+.fe-pagination-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.fe-pagination-disabled {
+    opacity: 0.55;
+}
+
+.fe-pagination-dots {
+    border-color: transparent;
+    background: transparent;
+}
+
+/* Discover editorial: eyebrow + filter pills + inline search. Level and
+   category pills reuse the quiet/active pair; the search stays one pill
+   row with a primary action. Visually-hidden selects mirror pill state
+   for assistive technology without adding a second visible filter. */
+.fe-discover-head {
+    gap: 0.375rem;
+}
+
+.fe-discover-eyebrow {
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+}
+
+.fe-discover-filters {
+    gap: 1rem;
+}
+
+.fe-filter-group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.fe-filter-label {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--fe-muted-text);
+}
+
+.fe-search-wrap {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.fe-search-wrap input[type='search'] {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.fe-search-wrap .fe-btn {
+    flex-shrink: 0;
+}
+
+.fe-filters-reset {
+    margin: 0;
+}
+
+.fe-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Studio mini-player thumb: 40px cover art beside the title so the
+   collapsed bar reads as audio hardware, not a text line. */
+.fe-player-thumb {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 12px;
+    object-fit: cover;
+    background: var(--fe-tint-lavender);
+    border: 1px solid var(--fe-border);
+    flex-shrink: 0;
+}
+
+/* Expanded console: the same play element grows to 64px inside the
+   centered transport cluster. Collapsed stays 52px. */
+.fe-playerbar[data-expanded='true'] .fe-play {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+}
+
+/* Reader: one composed learning environment. */
+.fe-reader {
+    display: grid;
+    gap: 1.25rem;
+    padding-block: 1rem 0.5rem;
+}
+
+.fe-reader-head {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.fe-reader-title {
+    font-family: var(--fe-font-en);
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.5;
+    margin: 0;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+.fe-reader-meta {
+    margin: 0;
+    color: var(--fe-muted-text);
+    font-size: 0.9375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+}
+
+.fe-reader-lede {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.9;
+}
+
 .fe-cover {
     display: block;
     width: 100%;
     max-height: 15rem;
     object-fit: cover;
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
+    background: var(--fe-tint-lavender);
 }
 
 .fe-glossary {
@@ -616,9 +1436,8 @@
     color: var(--fe-text);
 }
 
-/* Sentence-level reading: each cue-backed sentence is a selectable row.
-   The playing sentence carries the amber marker; color is never the sole
-   signal (aria-current + marker text). */
+/* Sentence-level reading: selectable rows, amber-free in the blue theme —
+   the playing sentence carries the accent bar plus aria-current text. */
 .fe-sentences {
     display: grid;
     gap: 0.25rem;
@@ -641,6 +1460,7 @@
     padding: 0.375rem 0.75rem;
     cursor: pointer;
     min-height: 44px;
+    transition: background-color 160ms ease, border-color 160ms ease;
 }
 
 .fe-sentence:hover {
@@ -658,22 +1478,433 @@
     border-color: var(--fe-border);
 }
 
-/* Editorial landing + Today surfaces. */
+/* Auth: deliberate two-part composition, same product, no gradient card. */
+.fe-auth {
+    display: grid;
+    gap: 1rem;
+    max-width: 680px;
+    margin-inline: auto;
+    padding: 1.5rem 1rem 3rem;
+}
+
+.fe-auth-brand {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1.25rem;
+    box-shadow: var(--fe-elev-1);
+    padding: 1.25rem 1rem;
+    display: grid;
+    gap: 0.5rem;
+    border-top: 4px solid var(--fe-primary);
+}
+
+.fe-auth-brand h1 {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.7;
+}
+
+.fe-auth-points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.fe-auth-points li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    color: var(--fe-muted-text);
+}
+
+.fe-auth-card {
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: 1.25rem;
+    box-shadow: var(--fe-elev-2);
+    padding: 1.5rem 1.25rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.fe-auth-card h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.fe-auth-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.fe-auth-alt {
+    margin: 0;
+    color: var(--fe-muted-text);
+    font-size: 0.9375rem;
+}
+
+.fe-auth-alt a {
+    color: var(--fe-text);
+    font-weight: 700;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Public landing: its own editorial rhythm on shared tokens.
+   Hero pairs copy with a real-data product preview (never marketing
+   art); sections below use whitespace, numerals, and dividers — not a
+   wall of cards. Entry motion is CSS-only, staggered, and fully
+   disabled under prefers-reduced-motion; content renders without JS. */
 .fe-public {
     display: grid;
     gap: 1.5rem;
     padding-block: 1.5rem 3rem;
 }
 
-.fe-hero {
+.fe-landing {
+    max-width: var(--fe-measure-wide);
+    margin-inline: auto;
+    padding: 1.5rem 1rem 3.5rem;
     display: grid;
+    gap: var(--fe-space-12);
+}
+
+/* The public shell wraps landing in a 680px measure; the landing
+   carries its own wide measure and rhythm instead. */
+main:has(> .fe-landing) {
+    max-width: var(--fe-measure-wide);
+    display: block;
+    padding-block: 0;
+}
+
+.fe-landing-hero {
+    display: grid;
+    gap: var(--fe-space-6);
+    align-items: center;
+    padding-block: 0.5rem;
+}
+
+.fe-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--fe-text);
+    background: var(--fe-tint-lavender);
+    border: 1px solid var(--fe-border);
+    border-radius: var(--fe-radius-pill);
+    padding: 0.375rem 0.875rem;
+    justify-self: start;
+}
+
+.fe-landing-hero h1 {
+    margin: 0;
+    font-size: var(--fe-title-hero);
+    line-height: 1.55;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+.fe-lede {
+    margin: 0;
+    font-size: 1.0625rem;
+    line-height: 1.9;
+    color: var(--fe-muted-text);
+}
+
+.fe-cta-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.fe-cta-row .fe-btn-primary {
+    padding: 0.875rem 1.5rem;
+    font-weight: 700;
+}
+
+.fe-cta-note {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+}
+
+/* Product preview: the actual reader staged small — cover, three
+   sentences with one active, and a play + speed row. Links to the
+   real sample; the play affordance is a link, not a mock player. */
+.fe-preview {
+    display: grid;
+    gap: 0.75rem;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: var(--fe-radius-lg);
+    box-shadow: var(--fe-elev-2);
+    padding: 1.25rem 1.125rem;
+    overflow: hidden;
+}
+
+.fe-preview-head {
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
 }
 
-.fe-hero h1 {
-    font-size: 1.5rem;
-    line-height: 1.6;
+.fe-preview-cover {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    object-fit: cover;
+    background: var(--fe-tint-lavender);
+    flex-shrink: 0;
+}
+
+.fe-preview-title {
     margin: 0;
+    font-family: var(--fe-font-en);
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.fe-preview-lines {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.375rem;
+}
+
+.fe-preview-lines li {
+    font-family: var(--fe-font-en);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--fe-text);
+    border: 1px solid transparent;
+    border-inline-start-width: 4px;
+    border-radius: 0.625rem;
+    padding: 0.375rem 0.625rem;
+}
+
+.fe-preview-lines li[aria-current='true'] {
+    background: var(--fe-surface);
+    border-color: var(--fe-border);
+    border-inline-start-color: var(--fe-accent);
+    background: var(--fe-tint-lavender);
+}
+
+.fe-preview-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+.fe-preview-play {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 999px;
+    background: var(--fe-primary);
+    border: 1px solid var(--fe-primary);
+    color: var(--fe-on-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.fe-preview-track {
+    flex: 1 1 auto;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--fe-border);
+    overflow: hidden;
+}
+
+.fe-preview-track > span {
+    display: block;
+    height: 100%;
+    width: 38%;
+    background: var(--fe-primary);
+    border-radius: inherit;
+}
+
+.fe-preview-speed {
+    font-family: var(--fe-font-en);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    padding: 0.375rem 0.625rem;
+    white-space: nowrap;
+}
+
+.fe-landing-section {
+    display: grid;
+    gap: 1rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--fe-border);
+}
+
+.fe-landing-section h2 {
+    margin: 0;
+    font-size: var(--fe-title-section);
+    line-height: 1.7;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fe-how {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    counter-reset: fe-how;
+}
+
+.fe-how > li {
+    counter-increment: fe-how;
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    padding-block: 0.875rem;
+}
+
+.fe-how > li + li {
+    border-top: 1px solid var(--fe-border);
+}
+
+.fe-how > li::before {
+    content: counter(fe-how, decimal);
+    font-family: var(--fe-font-en);
+    font-weight: 800;
+    font-size: 1.125rem;
+    color: var(--fe-primary);
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--fe-surface);
+}
+
+.fe-how h3 {
+    margin: 0 0 0.125rem;
+    font-size: 1.0625rem;
+}
+
+.fe-how p {
+    margin: 0;
+    color: var(--fe-muted-text);
+    line-height: 1.9;
+}
+
+/* Workflow + benefits: quiet divider rows with a small icon tile.
+   Tokens only; no new hues, no card wall, no badge piles. */
+.fe-workflow-row {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    padding: 0.875rem 1rem;
+}
+
+.fe-workflow-row h3 {
+    margin: 0 0 0.125rem;
+    font-size: 1.0625rem;
+}
+
+.fe-workflow-row p {
+    margin: 0;
+    color: var(--fe-muted-text);
+    line-height: 1.9;
+}
+
+.fe-workflow-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    border: 1px solid var(--fe-border);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+}
+
+/* Hero preview pulse: tied to play state only. The static landing
+   preview never carries data-playing, so no permanent animation runs
+   here; the real reader owns the playing highlight. Reduced-motion
+   kills it in all cases via the global kill-switch. */
+@keyframes fe-preview-pulse {
+    0%, 100% {
+        box-shadow: var(--fe-elev-1);
+    }
+    50% {
+        box-shadow: var(--fe-elev-2);
+    }
+}
+
+.fe-preview-lines li[aria-current='true'][data-playing='true'] {
+    animation: fe-preview-pulse 1.6s ease-in-out infinite;
+}
+
+.fe-final-cta {
+    display: grid;
+    gap: 0.75rem;
+    justify-items: start;
+    background: var(--fe-surface);
+    border: 1px solid var(--fe-border);
+    border-radius: var(--fe-radius-lg);
+    box-shadow: var(--fe-elev-2);
+    padding: 1.75rem 1.5rem;
+}
+
+.fe-final-cta h2 {
+    margin: 0;
+    font-size: 1.375rem;
+    line-height: 1.7;
+    text-wrap: balance;
+}
+
+/* Entry reveals: staged, subtle, JS-enhanced only. Without JS every
+   .fe-reveal renders normally; with JS they fade up once in view. */
+.fe-reveal {
+    opacity: 1;
+}
+
+html.fe-js .fe-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 180ms ease-out, transform 180ms ease-out;
+    transition-delay: var(--fe-reveal-delay, 0ms);
+}
+
+html.fe-js .fe-reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+@media (min-width: 900px) {
+    .fe-landing-hero {
+        grid-template-columns: 1.02fr 0.98fr;
+        gap: 2.5rem;
+    }
+
+    .fe-final-cta {
+        padding: 2.25rem 2rem;
+    }
 }
 
 .fe-draft-badge {
@@ -691,7 +1922,7 @@
     border: 1px solid var(--fe-danger);
     background: var(--fe-surface);
     color: var(--fe-text);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     padding: 1rem;
     display: grid;
     gap: 0.5rem;
@@ -722,14 +1953,12 @@
     margin: 0;
 }
 
-/* Editorial hero: promise + action + image in one composed block. The
-   editorial image keeps a fixed crop; copy never overlaps it. */
 .fe-hero-editorial {
     display: grid;
     gap: 1rem;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-2);
     padding: 1.5rem 1.25rem;
     overflow: hidden;
@@ -747,7 +1976,7 @@
     aspect-ratio: 16 / 10;
     overflow: hidden;
     border-radius: 1rem;
-    background: var(--fe-canvas);
+    background: var(--fe-tint-lavender);
 }
 
 .fe-hero-media img {
@@ -760,20 +1989,46 @@
 .fe-section-title {
     font-size: 1.25rem;
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-/* Today: greeting + continue + plan + goal ring + vocab-due + picks. */
+/* Display title: big condensed uppercase for Today/stats moments
+   (hybrid-dark REPORTS/REVENUE/CATEGORIES, adapted). English only;
+   Persian headings keep normal case and Vazirmatn. */
+.fe-display {
+    font-family: var(--fe-font-en);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Today: greeting + continue + plan + goal ring + picks. */
 .fe-today {
     display: grid;
     gap: 1rem;
 }
 
+.fe-greet {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--fe-muted-text);
+}
+
 .fe-continue {
     display: grid;
     gap: 0.75rem;
-    background: var(--fe-text);
-    color: var(--fe-surface);
-    border-radius: 1.5rem;
+    background: var(--fe-surface);
+    color: var(--fe-text);
+    border: 1px solid var(--fe-border);
+    border-inline-start: 4px solid var(--fe-accent);
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-2);
     padding: 1.25rem 1rem;
     overflow: hidden;
@@ -782,17 +2037,76 @@
 .fe-continue h2 {
     margin: 0;
     font-size: 1.125rem;
+    line-height: 1.5;
+    font-weight: 600;
+    overflow-wrap: anywhere;
 }
 
 .fe-continue p {
     margin: 0;
 }
 
-.fe-continue .fe-muted {
-    color: var(--fe-surface);
-    opacity: 0.8;
+.fe-today-eyebrow {
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
 }
 
+.fe-today-hero {
+    gap: 1rem;
+}
+
+.fe-today-hero-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.fe-today-cover {
+    flex-shrink: 0;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 1rem;
+    object-fit: cover;
+    border: 1px solid var(--fe-border);
+    background: var(--fe-tint-lavender);
+}
+
+.fe-today-cover-empty {
+    display: inline-grid;
+    place-items: center;
+    color: var(--fe-muted-text);
+}
+
+.fe-today-hero-head {
+    display: grid;
+    gap: 0.375rem;
+    min-width: 0;
+}
+
+.fe-today-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+}
+
+.fe-today-level {
+    margin: 0;
+}
+
+.fe-today-meta {
+    font-size: 0.9375rem;
+}
+
+.fe-today-meta [dir='ltr'] {
+    font-family: var(--fe-font-en);
+    font-variant-numeric: tabular-nums;
+}
+
+.fe-continue .fe-btn-accent,
 .fe-continue .fe-btn-primary {
     justify-self: start;
 }
@@ -824,6 +2138,15 @@
     align-items: center;
 }
 
+/* Quiet rows inside a divider list: the container owns the chrome. */
+.fe-divider-list .fe-plan-row,
+.fe-divider-list .fe-vocab-row {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
 .fe-plan-row a:focus-visible {
     outline: 3px solid var(--fe-primary);
     outline-offset: 2px;
@@ -847,14 +2170,14 @@
     border-color: var(--fe-success);
 }
 
-/* Daily-goal ring: progress signal in amber, text labels the numbers. */
+/* Daily-goal ring: progress signal in accent, numbers labelled in text. */
 .fe-goal {
     display: flex;
     align-items: center;
     gap: 1rem;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     box-shadow: var(--fe-elev-1);
     padding: 1rem;
 }
@@ -862,41 +2185,166 @@
 .fe-ring {
     --fe-ring-pct: 0;
     flex-shrink: 0;
-    width: 4.5rem;
-    height: 4.5rem;
+    width: 5rem;
+    height: 5rem;
     border-radius: 999px;
     display: grid;
     place-items: center;
     font-family: var(--fe-font-en);
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     background: conic-gradient(var(--fe-accent) calc(var(--fe-ring-pct) * 1%), var(--fe-border) 0);
 }
 
 .fe-ring span {
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 3.625rem;
+    height: 3.625rem;
     border-radius: 999px;
     background: var(--fe-surface);
     display: grid;
     place-items: center;
     color: var(--fe-text);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Vocabulary notebook + review. */
+/* Vocabulary notebook + review: quiet divider rows for the list, one
+   solid card for review. No flashcard rainbow: grades share one calm
+   button language; amber appears only as the tiny due dot. */
+.fe-words,
+.fe-review {
+    display: grid;
+    gap: 1rem;
+}
+
+.fe-words-head,
+.fe-review-head {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.fe-words-eyebrow,
+.fe-review-eyebrow {
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+}
+
+.fe-words-filters {
+    gap: 0.75rem;
+}
+
+.fe-words-cta {
+    margin: 0;
+}
+
 .fe-vocab-row {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+}
+
+.fe-vocab-main {
+    min-width: 0;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.fe-vocab-line {
+    margin: 0;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: var(--fe-surface);
-    border: 1px solid var(--fe-border);
-    border-radius: 1rem;
-    padding: 0.625rem 0.875rem;
+    flex-wrap: wrap;
 }
 
 .fe-vocab-word {
     font-family: var(--fe-font-en);
+    font-size: 1.125rem;
+    line-height: 1.5;
     font-weight: 700;
     color: var(--fe-text);
+    overflow-wrap: anywhere;
+}
+
+.fe-vocab-state {
+    font-size: 0.875rem;
+}
+
+.fe-due {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--fe-text);
+}
+
+.fe-due-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--fe-accent);
+    flex-shrink: 0;
+}
+
+.fe-vocab-meaning {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--fe-text);
+    overflow-wrap: anywhere;
+}
+
+.fe-vocab-example {
+    margin: 0;
+    font-family: var(--fe-font-en);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--fe-muted-text);
+    overflow-wrap: anywhere;
+}
+
+.fe-vocab-meta {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fe-muted-text);
+}
+
+.fe-vocab-meta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    color: var(--fe-muted-text);
+}
+
+.fe-vocab-meta a:focus-visible {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
+}
+
+.fe-vocab-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.fe-word-form {
+    display: grid;
+    gap: 0.75rem;
+    border-top: 1px solid var(--fe-border);
+    padding-top: 0.75rem;
+}
+
+.fe-word-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.fe-word-form-status {
+    margin: 0;
+    font-size: 0.875rem;
 }
 
 .fe-flash {
@@ -904,9 +2352,9 @@
     gap: 1rem;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
-    box-shadow: var(--fe-elev-2);
-    padding: 2rem 1.25rem;
+    border-radius: 1.25rem;
+    box-shadow: var(--fe-elev-1);
+    padding: 1.5rem 1.25rem;
     text-align: center;
     justify-items: center;
 }
@@ -914,16 +2362,97 @@
 .fe-flash-word {
     font-family: var(--fe-font-en);
     font-size: 2rem;
+    line-height: 1.3;
     font-weight: 700;
     margin: 0;
     color: var(--fe-text);
+    overflow-wrap: anywhere;
+}
+
+.fe-flash-meaning {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.9;
+    color: var(--fe-text);
+}
+
+.fe-flash-example {
+    margin: 0.25rem 0 0;
+    font-family: var(--fe-font-en);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--fe-muted-text);
+}
+
+.fe-flash-show-row {
+    margin: 0;
 }
 
 .fe-grade-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
     width: 100%;
+}
+
+.fe-grade {
+    flex-direction: column;
+    gap: 0.125rem;
+    padding-block: 0.625rem;
+}
+
+.fe-grade-key {
+    font-family: var(--fe-font-en);
+    font-size: 0.75rem;
+    color: var(--fe-muted-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.fe-grade-hint {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+    .fe-grade-row {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Settings: appearance radios share the option-card language. */
+.fe-appearance {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.fe-appearance-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border: 1px solid var(--fe-border);
+    border-radius: 1rem;
+    background: var(--fe-surface);
+    padding: 0.625rem 0.875rem;
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.fe-appearance-option:has(input:checked) {
+    border-color: var(--fe-primary);
+    border-width: 2px;
+    padding: calc(0.625rem - 1px) calc(0.875rem - 1px);
+}
+
+.fe-appearance-option input[type='radio'] {
+    width: 24px;
+    height: 24px;
+    accent-color: var(--fe-primary);
+    flex-shrink: 0;
+}
+
+.fe-appearance-option:focus-within {
+    outline: 3px solid var(--fe-primary);
+    outline-offset: 2px;
 }
 
 .fe-meta-table {
@@ -931,7 +2460,7 @@
     border-collapse: collapse;
     background: var(--fe-surface);
     border: 1px solid var(--fe-border);
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     overflow: hidden;
 }
 
@@ -993,6 +2522,39 @@
     .fe-hero-editorial h1 {
         font-size: 2rem;
     }
+
+    /* Tablet and up: the pill topnav owns navigation, so the bottom
+       tabs retire and the player docks to the viewport bottom. */
+    .fe-topnav {
+        display: block;
+    }
+
+    .fe-bottomnav {
+        display: none;
+    }
+
+    .fe-playerbar {
+        bottom: 0;
+    }
+
+    .fe-playerbar-inner {
+        max-width: 720px;
+    }
+
+    .fe-main-pad {
+        padding-bottom: 10rem;
+    }
+
+    .fe-learner:has(.fe-playerbar[data-expanded='true']) .fe-main-pad,
+    body[data-player-expanded='true'] .fe-main-pad {
+        padding-bottom: 15rem;
+    }
+
+    .fe-auth {
+        grid-template-columns: 5fr 7fr;
+        max-width: 960px;
+        align-items: start;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -1001,7 +2563,7 @@
     }
 
     /* Desktop shell: sidebar takes the navigation; the bottom tab bar and
-       the floating top pill retire at this width. */
+       the top pill retire at this width. */
     .fe-shell {
         display: grid;
         grid-template-columns: 16rem minmax(0, 1fr);
@@ -1012,7 +2574,8 @@
         align-items: start;
     }
 
-    .fe-topnav,
+    .fe-brandbar,
+    .fe-topnav:not(.fe-topnav-public),
     .fe-bottomnav {
         display: none;
     }
@@ -1024,31 +2587,36 @@
         top: 1rem;
         background: var(--fe-surface);
         border: 1px solid var(--fe-border);
-        border-radius: 1.5rem;
+        border-radius: 1.25rem;
         box-shadow: var(--fe-elev-1);
         padding: 1rem 0.75rem;
     }
 
     .fe-sidebar-brand {
         font-family: var(--fe-font-en);
-        font-weight: 700;
+        font-weight: 800;
         padding: 0.5rem 0.75rem;
         color: var(--fe-text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .fe-sidebar a {
         min-height: 44px;
         display: flex;
         align-items: center;
+        gap: 0.625rem;
         padding: 0.5rem 0.75rem;
         border-radius: 1rem;
-        color: var(--fe-text);
+        color: var(--fe-muted-text);
         text-decoration: none;
     }
 
     .fe-sidebar a[aria-current='page'] {
         background: var(--fe-text);
         color: var(--fe-surface);
+        font-weight: 700;
     }
 
     .fe-sidebar a:focus-visible {
@@ -1056,12 +2624,17 @@
         outline-offset: 2px;
     }
 
-    .fe-playerbar {
-        bottom: 0;
+    .fe-play {
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        min-height: 56px;
     }
+}
 
-    .fe-main-pad {
-        padding-bottom: 16rem;
+@media (min-width: 1360px) {
+    .fe-shell {
+        max-width: 80rem;
     }
 }
 

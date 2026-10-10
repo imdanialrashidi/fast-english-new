@@ -5,23 +5,25 @@ const audio = (page) => page.locator('#lesson-audio');
 
 // S1-4 playback part: real play/pause/seek/speed/clamp/error against the
 // fixture MP3 over HTTP.
-test('play and pause toggle with a visible label', async ({ page }) => {
+test('play and pause toggle with an accessible name', async ({ page }) => {
   await page.goto(B1);
   const play = page.locator('#player-play');
-  await expect(play).toHaveText('پخش');
+  await expect(play).toHaveAttribute('aria-label', 'پخش');
 
   await play.click();
   await expect.poll(() => audio(page).evaluate((a: HTMLAudioElement) => !a.paused)).toBe(true);
-  await expect(play).toHaveText('توقف');
+  await expect(play).toHaveAttribute('aria-label', 'توقف');
 
   await play.click();
   await expect.poll(() => audio(page).evaluate((a: HTMLAudioElement) => a.paused)).toBe(true);
-  await expect(play).toHaveText('پخش');
+  await expect(play).toHaveAttribute('aria-label', 'پخش');
 });
 
 test('drag seek moves playback position', async ({ page }) => {
   await page.goto(B1);
   await page.waitForFunction(() => Number.isFinite(document.querySelector<HTMLAudioElement>('#lesson-audio')?.duration));
+  await page.locator('#player-toggle').click();
+  await expect(page.locator('#player-seek')).toBeVisible();
 
   // RTL page: the range is mirrored (min right, max left), so dragging
   // right-to-left moves playback forward.
@@ -41,6 +43,8 @@ test('drag seek moves playback position', async ({ page }) => {
 test('keyboard seek works and ±10s clamps at both bounds', async ({ page }) => {
   await page.goto(B1);
   await page.waitForFunction(() => Number.isFinite(document.querySelector<HTMLAudioElement>('#lesson-audio')?.duration));
+  await page.locator('#player-toggle').click();
+  await expect(page.locator('#player-seek')).toBeVisible();
   const duration = await audio(page).evaluate((a: HTMLAudioElement) => a.duration);
   expect(duration).toBeGreaterThan(25);
 
@@ -87,15 +91,43 @@ test('keyboard seek works and ±10s clamps at both bounds', async ({ page }) => 
   await expect.poll(() => audio(page).evaluate((a: HTMLAudioElement) => a.currentTime)).toBe(0);
 });
 
-test('every speed applies to the audio element', async ({ page }) => {
+test('speed cycles 1, 1.25, 1.5, 0.75 and applies to the audio element', async ({ page }) => {
   await page.goto(B1);
-  for (const speed of ['0.75', '1', '1.25', '1.5']) {
-    await page.getByRole('button', { name: `${speed}×` }).click();
+  const cycle = page.locator('#player-speed');
+  const expected: Array<[string, number]> = [['1×', 1], ['1.25×', 1.25], ['1.5×', 1.5], ['0.75×', 0.75], ['1×', 1]];
+  await expect(cycle).toHaveAccessibleName(/سرعت پخش: 1×/);
+  for (const [label, rate] of expected.slice(1)) {
+    await cycle.click();
+    await expect(page.locator('#player-speed-label')).toHaveText(label);
+    await expect(cycle).toHaveAccessibleName(`سرعت پخش: ${label}`);
     await expect
       .poll(() => audio(page).evaluate((a: HTMLAudioElement) => a.playbackRate))
-      .toBe(Number(speed));
-    await expect(page.getByRole('button', { name: `${speed}×` })).toHaveAttribute('aria-pressed', 'true');
+      .toBe(rate);
   }
+});
+
+test('player rests collapsed with an expandable console', async ({ page }) => {
+  await page.goto(B1);
+  const bar = page.locator('.fe-playerbar');
+  const toggle = page.locator('#player-toggle');
+  await expect(bar).toHaveAttribute('data-expanded', 'false');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#player-seek')).toBeHidden();
+  // Play, speed, and the compact time stay usable while collapsed.
+  await expect(page.locator('#player-play')).toBeVisible();
+  await expect(page.locator('#player-speed')).toBeVisible();
+  await expect(page.locator('#player-duration')).not.toHaveText('–:––', { timeout: 10_000 });
+
+  await toggle.click();
+  await expect(bar).toHaveAttribute('data-expanded', 'true');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#player-seek')).toBeVisible();
+  await expect(page.locator('#player-back')).toBeVisible();
+  await expect(page.locator('#player-forward')).toBeVisible();
+
+  await toggle.click();
+  await expect(bar).toHaveAttribute('data-expanded', 'false');
+  await expect(page.locator('#player-seek')).toBeHidden();
 });
 
 test('network failure shows a message with a working retry', async ({ page }) => {

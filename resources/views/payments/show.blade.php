@@ -4,7 +4,9 @@
 
 @section('content')
 <div class="fe-measure fe-library">
-    <h1>درخواست پرداخت</h1>
+    <div class="fe-library-head">
+        <h1>درخواست پرداخت</h1>
+    </div>
 
     @if (session('status'))
         <p class="fe-muted" role="status">{{ session('status') }}</p>
@@ -12,7 +14,7 @@
 
     <div class="fe-card">
         <div class="fe-card-body">
-            <h2 class="fe-card-title" lang="fa" dir="rtl">{{ $paymentRequest->plan_name_snapshot }}</h2>
+            <h2 class="fe-section-title"><x-fe-icon name="card" size="20" /><span lang="fa" dir="rtl">{{ $paymentRequest->plan_name_snapshot }}</span></h2>
             <p class="fe-card-levels">{{ \App\Support\Toman::format((int) $paymentRequest->amount_toman_snapshot) }}</p>
             <p class="fe-muted">{{ $paymentRequest->duration_days_snapshot }} روز دسترسی پس از تأیید</p>
             <p class="fe-muted">وضعیت:
@@ -54,38 +56,38 @@
                     <label for="receipt">تصویر رسید (JPEG/PNG/WebP تا ۵ مگابایت)</label>
                     <input id="receipt" name="receipt" type="file" accept="image/jpeg,image/png,image/webp" required>
                     @error('receipt')
-                        <p class="fe-alert" role="alert">{{ $message }}</p>
+                        <p class="fe-alert" role="alert"><x-fe-icon name="circle-alert" size="20" />{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="fe-field">
                     <label for="bank_reference">کد پیگیری (اختیاری)</label>
                     <input id="bank_reference" name="bank_reference" type="text" value="{{ old('bank_reference') }}" maxlength="64" autocomplete="off">
                     @error('bank_reference')
-                        <p class="fe-alert" role="alert">{{ $message }}</p>
+                        <p class="fe-alert" role="alert"><x-fe-icon name="circle-alert" size="20" />{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="fe-field">
                     <label for="sender_last4">چهار رقم آخر کارت مبدأ (اختیاری)</label>
                     <input id="sender_last4" name="sender_last4" type="text" value="{{ old('sender_last4') }}" maxlength="4" inputmode="numeric" autocomplete="off">
                     @error('sender_last4')
-                        <p class="fe-alert" role="alert">{{ $message }}</p>
+                        <p class="fe-alert" role="alert"><x-fe-icon name="circle-alert" size="20" />{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="fe-field">
                     <label for="transferred_at">زمان انتقال (اختیاری)</label>
                     <input id="transferred_at" name="transferred_at" type="datetime-local" value="{{ old('transferred_at') }}">
                     @error('transferred_at')
-                        <p class="fe-alert" role="alert">{{ $message }}</p>
+                        <p class="fe-alert" role="alert"><x-fe-icon name="circle-alert" size="20" />{{ $message }}</p>
                     @enderror
                 </div>
                 <div class="fe-field fe-field-actions">
-                    <button class="fe-btn fe-btn-primary" type="submit">ثبت رسید</button>
+                    <button class="fe-btn fe-btn-primary" type="submit"><x-fe-icon name="check" size="20" />ثبت رسید</button>
                 </div>
             </form>
             <form method="POST" action="{{ route('payments.cancel', $paymentRequest) }}" lang="fa" dir="rtl">
                 @csrf
                 <div class="fe-field fe-field-actions">
-                    <button class="fe-btn" type="submit">لغو این درخواست</button>
+                    <button class="fe-btn" type="submit"><x-fe-icon name="x" size="20" />لغو این درخواست</button>
                 </div>
             </form>
         </section>

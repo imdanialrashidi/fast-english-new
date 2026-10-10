@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Lesson;
 use App\Models\Topic;
+use App\Support\TopicCover;
+use App\Support\TopicLicense;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,6 +32,8 @@ class S4PaginationSeeder extends Seeder
                 [
                     'title_en' => "S4 Paginate {$i}",
                     'summary_public' => "S4 pagination fixture {$i}: labelled, tone audio.",
+                    'cover_path' => TopicCover::generate($slug),
+                    'source_note' => TopicLicense::generatedRecord($slug),
                     'status' => 'published',
                     'published_at' => now()->subMinutes($i),
                 ]

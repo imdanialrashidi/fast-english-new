@@ -14,9 +14,9 @@ const G = { email: 'browser-g@example.com', password: 'password' };
 
 async function login(page, user: { email: string; password: string }) {
   await page.goto(LOGIN);
-  await page.getByLabel('Email').fill(user.email);
-  await page.getByLabel('Password').fill(user.password);
-  await page.getByRole('button', { name: 'Log in' }).click();
+  await page.getByLabel('ایمیل', { exact: true }).fill(user.email);
+  await page.getByLabel('رمز عبور', { exact: true }).fill(user.password);
+  await page.getByRole('button', { name: 'ورود' }).click();
   await page.waitForURL('**/account**');
 }
 
@@ -91,7 +91,7 @@ test('S4-6 logout stops the audio, clears its source, and isolates accounts', as
   // Real logout through the account form (full navigation, no wire:navigate).
   await page.goto(ACCOUNT);
   await expect(page.locator('body')).toContainText(F.email);
-  await page.getByRole('button', { name: 'Log out' }).click();
+  await page.getByRole('button', { name: 'خروج از حساب' }).click();
   await page.waitForURL(/\/(login|$)/);
   await expect(page.locator('#lesson-audio')).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText(F.email);

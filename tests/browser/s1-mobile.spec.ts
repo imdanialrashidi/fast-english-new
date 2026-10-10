@@ -11,7 +11,7 @@ async function readerChecks(page, shot: string) {
     const bar = document.querySelector<HTMLElement>('.fe-playerbar')!;
     const main = document.querySelector<HTMLElement>('#fe-content')!;
     const controls = Array.from(
-      document.querySelectorAll<HTMLElement>('.fe-btn, .fe-level-link, .fe-speed-btn, .fe-seek'),
+      document.querySelectorAll<HTMLElement>('.fe-btn, .fe-level-link, #player-speed, .fe-seek'),
     )
       .filter((el) => el.offsetParent !== null)
       .map((el) => {
